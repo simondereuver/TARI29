@@ -1,11 +1,11 @@
 ### ignore
-
-*.aux          # Auxiliary files for references
-*.bbl          # Generated bibliography file (output of BibTeX)
-*.blg          # Log file from BibTeX
-*.fls          # List of files used by latexmk
-*.log          # LaTeX compilation log
-*.out          # Auxiliary file for cross-references
-*.synctex.gz   # SyncTeX file for editor-PDF synchronization
-*.toc          # Table of contents file
-*.fdb_latexmk  # File database for latexmk
+# latex
+*.aux
+*.bbl
+*.blg
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.fdb_latexmk
