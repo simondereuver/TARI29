@@ -24,9 +24,8 @@ def create_distance_matrix(cities):
     n = len(city_list)
     distance_matrix = np.zeros((n, n))
     for i in range(n):
-        for j in range(n):
-            if i != j:
-                distance_matrix[i][j] = euclidean_distance(cities[city_list[i]], cities[city_list[j]])
+        for j in range(i+1,n):
+            distance_matrix[i][j] = euclidean_distance(cities[city_list[i]], cities[city_list[j]])
     return distance_matrix, city_list
 
 def euclidean_distance(city1, city2):
