@@ -4,6 +4,15 @@ import numpy as np
 # Create a list of cities with random coordinates
 
 def create_cities(num_cities):
+    if num_cities <= 1:
+        raise ValueError("Number of cities must be two or higher")
+    
+    if not isinstance(num_cities,int):
+        raise ValueError("Number of cities must be an integer")
+    
+    if num_cities > 100:
+        raise ValueError("Due to calculation cost number of city must be lower than 100")
+     
     cities = {f'City_{i}': (random.uniform(0, 100), random.uniform(0, 100)) for i in range(num_cities)}
     distance_matrix, city_list = create_distance_matrix(cities)
     return cities, distance_matrix, city_list
