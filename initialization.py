@@ -20,7 +20,7 @@ def create_matrix(num_horizonal_section,num_vertical_section,shelf_per_section):
         raise ValueError("Number of cities must be an integer")
 
     # Dimensions of the matrix
-    n = 4 * num_horizonal_section + 1
+    n = (shelf_per_section + 1) * num_horizonal_section + 1
     m = 2 * num_vertical_section + 1
 
     matrix = np.empty((n, m),str)
@@ -28,7 +28,7 @@ def create_matrix(num_horizonal_section,num_vertical_section,shelf_per_section):
     counter = 1
     for j in range(m): 
         for i in range(n): 
-            if j % 2 == 0 or i % 4 == 0:
+            if j % 2 == 0 or i % (shelf_per_section + 1) == 0:
                 matrix[i][j] = '🌫️'
             else:
                 matrix[i][j] = '🗄️'  
