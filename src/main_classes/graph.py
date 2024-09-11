@@ -1,7 +1,7 @@
 """
 Module containing main graph (warehouse representation)
 """
-
+import heapq
 from itertools import permutations
 from typing import List
 import random
@@ -9,7 +9,6 @@ import time
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-import heapq
 
 class Graph:
     """Graph class functionality"""
@@ -187,7 +186,6 @@ class Graph:
         max_1tree_weight = float('-inf')
         for root in range(self.nodes):
             one_tree_weight = self.one_tree(graph, root)
-            if one_tree_weight > max_1tree_weight:
-                max_1tree_weight = one_tree_weight
+            max_1tree_weight = max(max_1tree_weight, one_tree_weight)
 
         return max_1tree_weight
