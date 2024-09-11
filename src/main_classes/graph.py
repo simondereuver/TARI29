@@ -56,7 +56,7 @@ class Graph:
         g = nx.Graph()
 
         # add to nx graph g
-        for i in range(len(graph)):
+        for i, _ in enumerate(graph):
             for j in range(i + 1, len(graph)):
                 if graph[i][j] != 0:
                     g.add_edge(i, j, weight=graph[i][j])
