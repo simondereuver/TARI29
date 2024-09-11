@@ -9,7 +9,7 @@ EDGE_WEIGHT_SPAN = (1, 25)
 
 g = Graph(NUMBER_OF_NODES, EDGE_WEIGHT_SPAN)
 
-graph = g.generate_random_graph(i)
+graph = g.generate_random_graph(seed=0)
 
 print(graph)
 
