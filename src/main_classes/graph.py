@@ -56,10 +56,10 @@ class Graph:
         g = nx.Graph()
 
         # add to nx graph g
-        for i, _ in enumerate(graph):
-            for j in range(i + 1, len(graph)):
-                if graph[i][j] != 0:
-                    g.add_edge(i, j, weight=graph[i][j])
+        for i, row in enumerate(graph):
+            for j, value in enumerate(row[i + 1:], start=i + 1):
+                if value != 0:
+                    g.add_edge(i, j, weight=value)
 
         # configs for plotting
         pos = nx.spring_layout(g,
