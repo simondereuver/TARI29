@@ -1,7 +1,7 @@
 """
 Module containing main graph (warehouse representation)
 """
-
+import heapq
 from itertools import permutations
 from typing import List
 import random
@@ -131,3 +131,61 @@ class Graph:
         self.shortest_path = shortest_path
         self.solved = True
         return shortest_path, min_weight
+
+    def one_tree(self, graph: np.ndarray, root: int) -> int:
+        """Calculates the 1-tree for a given root node."""
+        def prim_mst(graph: np.ndarray, exclude_node: int) -> int:
+            """Prim's MST algorithm, with the modification of excluding the root node."""
+            start_node = next(i for i in range(len(graph)) if i != exclude_node)
+            mst_edges = []
+            visited = set()
+            priority_queue = []
+
+            visited.add(exclude_node) #exclude the root node
+            visited.add(start_node) #start building the MST from a random node
+
+            for adj_node, weight in enumerate(graph[start_node]):
+                if weight > 0 and adj_node != exclude_node:
+                    heapq.heappush(priority_queue, (weight, start_node, adj_node))
+
+            mst_weight = 0
+
+            while priority_queue and len(mst_edges) < len(graph) - 2:  # n-2 edges in MST
+                weight, u, v = heapq.heappop(priority_queue)
+                if v not in visited:
+                    visited.add(v)
+                    mst_edges.append((u, v))
+                    mst_weight += weight
+
+                    for adj_node, edge_weight in enumerate(graph[v]):
+                        if edge_weight > 0 and adj_node not in visited and adj_node != exclude_node:
+                            heapq.heappush(priority_queue, (edge_weight, v, adj_node))
+
+            return mst_weight
+
+        #calculate the edges from the root and choose the smallest edges
+        root_edges = []
+        for adj_node, weight in enumerate(graph[root]):
+            if weight > 0:
+                root_edges.append((weight, root, adj_node))
+        root_edges.sort()
+        min_root_edges = root_edges[:2]
+
+        #should not occour as we have a TSP graph
+        if len(min_root_edges) < 2:
+            raise ValueError("Not enough edges from root node to form a valid 1-tree.")
+
+        #calculate the MST excluding the root (the rest of the graph)
+        mst_weight = prim_mst(graph, root)
+        #add the two smallest root edges to the MST weight for the 1-tree weight
+        total_weight = mst_weight + sum(edge[0] for edge in min_root_edges)
+        return total_weight
+
+    def max_one_tree_lower_bound(self, graph: np.ndarray) -> int:
+        """Find the maximum 1-tree lower bound by trying all nodes as roots"""
+        max_1tree_weight = float('-inf')
+        for root in range(self.nodes):
+            one_tree_weight = self.one_tree(graph, root)
+            max_1tree_weight = max(max_1tree_weight, one_tree_weight)
+
+        return max_1tree_weight
