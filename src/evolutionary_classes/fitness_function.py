@@ -19,26 +19,22 @@ class FitnessFunction:
         else:
             warnings.warn("No boundaries set. FitnessFunction.bound is None", RuntimeWarning)
 
-    def _calculate_distance(self, route: List) -> int:
+    def _calculate_distance(self, route: List[int]) -> int:
         """Helper function for calculating the distance"""
         if route is None or len(route) < 2:
             raise ValueError("The provided route is less than 2. Exiting...")
 
-        x = 0
-
-        for i in range(len(route) - 1):
-            x += self.graph[route[i]][route[i + 1]]
-
-        x += self.graph[route[-1]][route[0]]
+        x = np.sum(self.graph[route[:-1], route[1:]])
+        x += self.graph[route[-1], route[0]]
 
         return x
 
-    def fitness_function_distance_based(self, route: List) -> int:
+    def fitness_function_distance_based(self, route: List[int]) -> int:
         """Distance based fitness function"""
         # evaluates the fitness score based on the total_distance. The lower the value, the better.
         return self._calculate_distance(route)
 
-    def fitness_function_normalized(self, route: List) -> float:
+    def fitness_function_normalized(self, route: List[int]) -> float:
         """Normalized version"""
         # if there are no bounds, then we evaluate the fitness score as 1 / total_distance
         if self.bounds is None:
