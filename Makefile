@@ -30,8 +30,8 @@ ifeq ($(OSFLAG),windows)
 		python -m venv $(VENV)
 	)
 else
-	if [ ! -f "$(VENV)/bin/activate" ]; then
-		python3 -m venv $(VENV)
+	if [ ! -f "$(VENV)/bin/activate" ]; then \
+		python3 -m venv $(VENV); \
 	fi
 endif
 
@@ -62,9 +62,9 @@ endif
 .PHONY: lint
 lint:
 ifeq ($(OSFLAG),windows)
-	cmd /C "$(VENV)\Scripts\activate && pylint src/**/*.py"
+	pylint src/**/*.py
 else
-	. $(VENV)/bin/activate && pylint src/**/*.py
+	pylint src/**/*.py
 endif
 
 # Clean up by removing the virtual environment
