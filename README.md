@@ -2,6 +2,49 @@
 
 ## Dependencies and Recommendations
 
+### Makefile commands and usage
+
+This project uses a Makefile to automate common tasks such as setting up a virtual environment, installing dependencies, running linting with `pylint`, and cleaning up the environment.
+
+#### Available Commands
+
+1. **`make start`**:
+   - **Purpose**: Sets up the environment by creating a virtual environment (if it doesn't already exist), installs the dependencies, opens VS Code, and prints instructions for manually activating the virtual environment.
+   - **Steps**:
+     1. Creates a virtual environment called `venv` (if necessary).
+     2. Installs the project dependencies from `requirements.txt`.
+     3. Opens the project in VS Code.
+     4. Provides instructions to manually activate the virtual environment. (There is no workaround this, so the enviroment has to be manually activated after running `make start`).
+
+   - **Usage**:
+    `make start`
+
+2. **`make lint`**:
+    - **Purpose**: Runs pylint on the source code to check for code style issues and errors. This requires the virtual environment to be activated first, usefull to catch errors before you push and create a merge request (so it passes the pipeline).
+    Note: You must manually activate the virtual environment before running this command, as the subshell created by Makefile doesn't persist the environment activation.
+
+    - **Usage**:
+    Activate the virtual enviroment:
+    On Windows:
+    `venv\Scripts\activate`
+    On Unix-like systems (Linux, macOS):
+    `source nameofenv/bin/activate`
+    Then run: `make lint`.
+
+3. **`make clean`**:
+
+    - Purpose: Removes the virtual environment directory, cleaning up the project.
+    - Steps:
+    Removes the virtual environment folder **venv**.
+
+    - **`Usage`**:
+    `make clean`
+
+4. **`IMPORTANT NOTE`**:
+    - You need to have make installed to use it, makefile has been created with make version 4.4.
+
+### Do it manually
+
 - Python 3.x, you can specify in the python venv which pyhton version you want to use, if you have multiple installations on your computer.
 - Create a Python virtual environment by running: `python -m venv nameofenv` (note: you can name the enviroment whatever you want and don't forget to activate it when you are working on the project).
 - To activate the environment:
