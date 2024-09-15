@@ -3,6 +3,8 @@
 
 # example code for generating random graphs
 from main_classes.graph import Graph
+from evolutionary_classes.population_search import RandomPopulation
+
 
 NUMBER_OF_NODES = 5
 EDGE_WEIGHT_SPAN = (1, 25)
@@ -18,3 +20,12 @@ shortest_path, weight = g.solve_bf(graph, 0)
 print(f"Shortest path: {shortest_path}, {weight} meters")
 
 g.show_graph(graph)
+
+
+# Generate a population of random node permutations
+population_size = 5  
+random_population = RandomPopulation(nodes=list(range(NUMBER_OF_NODES)), size=population_size, seed=42)
+
+node_permutations = random_population.get_values()
+
+print(f"Generated Node Permutations: {node_permutations}")
