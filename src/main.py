@@ -29,3 +29,16 @@ random_population = RandomPopulation(nodes=list(range(NUMBER_OF_NODES)), size=po
 node_permutations = random_population.get_values()
 
 print(f"Generated Node Permutations: {node_permutations}")
+
+# Example usage to run the 1-tree on 10 different graphs
+#for i in range(10):
+#    graph = g.generate_random_graph(i)
+#
+#    print(graph)
+
+#    shortest_path, weight = g.solve_bf(graph, 0)
+
+    #lowerbound = g.lower_bound(graph)
+#    lowerbound1 = g.max_one_tree_lower_bound(graph)
+
+#    print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
