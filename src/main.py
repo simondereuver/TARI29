@@ -24,7 +24,7 @@ g.show_graph(graph)
 
 
 # Generate a population of random node permutations
-population_size = 5  
+population_size = 5 
 random_population = RandomPopulation(nodes=list(range(NUMBER_OF_NODES)), size=population_size, seed=42)
 
 node_permutations = random_population.get_values()
