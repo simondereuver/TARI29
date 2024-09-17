@@ -6,6 +6,7 @@ Module containing population-based search
 import random
 import numpy as np
 from evolutionary_classes.selection import Selection
+from evolutionary_classes.fitness_function import FitnessFunction
 
 class Population:
     """Class for generating and modifying the population"""
@@ -82,9 +83,9 @@ class Population:
             mutated_population.append(path)
         return mutated_population
 
-    def gen_new_population(self, graph: np.ndarray, curr_gen: list, selection: Selection) -> list:
+    def gen_new_population(self, curr_gen: list, selection: Selection, ff: FitnessFunction) -> list:
         """Generate a new population using selection, crossover, and mutation."""
-        survivors = selection.survivors(graph, curr_gen)
+        survivors = selection.survivors(curr_gen, ff)
         children = self.crossovers(survivors)
         combined_population = survivors + children
         new_population = self.mutate_population(combined_population)
