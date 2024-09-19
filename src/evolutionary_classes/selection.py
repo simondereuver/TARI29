@@ -23,23 +23,6 @@ class Selection:
 
         return total_distance
 
-    #def survivors(self, graph: np.ndarray, old_generation: list) -> list:
-    #    """Select half of the population based on minimum distances."""
-    #    #implement the fitness function here instead
-    #    survivors = []
-    #    random.shuffle(old_generation)
-    #    mid = len(old_generation) // 2
-#
-    #    for i in range(mid):
-    #        distance_1 = self.distance(graph, old_generation[i])
-    #        distance_2 = self.distance(graph, old_generation[i + mid])
-    #        if distance_1 < distance_2:
-    #            survivors.append(old_generation[i])
-    #        else:
-    #            survivors.append(old_generation[i + mid])
-#
-    #    return survivors
-
     def survivors(self, old_generation: list, ff: FitnessFunction) -> list:
         """Select half of the population based on fitness function."""
         #implement the fitness function here instead
@@ -52,15 +35,22 @@ class Selection:
             fit_2 = ff.fitness_function_normalized(old_generation[i + mid])
             if fit_1 > fit_2:
                 survivors.append(old_generation[i])
-                print(f"Choosing the better fit: {fit_1}")
+                #print(f"Choosing the better fit: {fit_1}")
             else:
                 survivors.append(old_generation[i + mid])
-                print(f"Choosing the better fit: {fit_2}")
+                #print(f"Choosing the better fit: {fit_2}")
 
         return survivors
 
     # --- Optional Selection Methods ---
-
+    #currently we compare two solutions, and pick the better one, to be a survivor
     #   Implement something like this instead of current survivors logic method:
-    # def elitist_selection() -> list:
-    # def tournament_selection() -> list:
+    # elitist_selection, choose the 15% best solutions in the current generation,
+    # tournament_selection, choose 25% of the remaining population through tournament
+    # choose 10% in roulette
+    # lets say we have a population of 100
+    # elitist = 15 best solutions, tournament = 25, out of the remaining 60 solutions,
+    # choose 10 at roulette(random) for maintaining diversity
+
+    #we should try to look into this and see what gives us the best solution rate
+    #do we also want to mutate a small portion of the population?

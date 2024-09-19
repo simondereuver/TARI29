@@ -1,11 +1,12 @@
 """main program code here"""
 
-
 # example code for generating random graphs
 from main_classes.graph import Graph
-from evolutionary_classes.selection import Selection
-from evolutionary_classes.fitness_function import FitnessFunction
-from evolutionary_classes.population import Population
+#from evolutionary_classes.selection import Selection
+#from evolutionary_classes.fitness_function import FitnessFunction
+#from evolutionary_classes.population import Population
+
+from evolutionary_classes.tsp_gen_solver import TSPGeneticSolver
 
 NUMBER_OF_NODES = 10
 EDGE_WEIGHT_SPAN = (10, 100)
@@ -16,35 +17,28 @@ graph = g.generate_random_graph(seed=1)
 
 print(graph)
 
-#shortest_path, weight = g.solve_bf(graph, 0)
+shortest_path, weight = g.solve_bf(graph, 0)
 
 lowerbound1 = g.max_one_tree_lower_bound(graph)
-print(f"Lowerbound estimated: {lowerbound1}")
+#print(f"Lowerbound estimated: {lowerbound1}")
 
-#print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
+print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
 
 #g.show_graph(graph)
 
-population_mngr = Population()
-selection_mngr = Selection()
-ff = FitnessFunction(graph, (lowerbound1, None))
-initial_population = population_mngr.initial_population(graph)
+#create dictionary to set parameters instead
+solver = TSPGeneticSolver(
+    graph,
+    population_size_range=(10, 50),
+    mutation_rate=0.01,
+    bounds=(lowerbound1, None))
 
-NUM_GENERATIONS = 25
-curr_gen = initial_population
+best_path, best_distance = solver.run(generations=200)
 
-#run for a set of generations
-for generation in range(NUM_GENERATIONS):
-    curr_gen = population_mngr.gen_new_population(curr_gen, selection_mngr, ff)
-
-if not curr_gen:
-    print("\nNo valid paths found in the final generation.")
+if best_path:
+    print(f"\nBest path found: {best_path} with distance: {best_distance}")
 else:
-    best_path = min(curr_gen, key=lambda path: selection_mngr.distance(graph, path))
-    best_distance = selection_mngr.distance(graph, best_path)
-    # + [0] is a quick fix for now to make it look similar to the solution in the bruteforce
-    print(f"\nBest path found: {best_path + [0]} with distance: {best_distance}")
-
+    print("\nNo valid paths found.")
 
 #Example usage to run the 1-tree on 10 different graphs
 #for i in range(10):

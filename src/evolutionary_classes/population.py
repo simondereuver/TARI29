@@ -51,11 +51,15 @@ class Population:
 
     def _create_children(self, parent_a: list, parent_b: list) -> list:
         """Creates a child out of a pair of parents."""
+        #there are different crossover methods, we need to test to see which gives best result
+        #Order Crossover (OX)
+        #Cycle Crossover (CX)
+        #Edge Recombination Crossover (ERX)
         children = []
         start = random.randint(0, len(parent_a) - 1)
         end = random.randint(start, len(parent_a))
         sub_path_a = parent_a[start:end]
-        sub_path_b = list([item for item in parent_b if item not in sub_path_a])
+        sub_path_b = [item for item in parent_b if item not in sub_path_a]
         for i in range(len(parent_a)):
             if start <= i < end:
                 children.append(sub_path_a.pop(0))
@@ -65,16 +69,19 @@ class Population:
 
     def crossovers(self, survivors: list) -> list:
         """Creates crossovers using the _create_children method."""
+        #there are different crossover methods, we need to test to see which gives best result
         children = []
         mid = len(survivors) // 2
         for i in range(mid):
             parent_a, parent_b = survivors[i], survivors[i + mid]
             children.append(self._create_children(parent_a, parent_b))
-            children.append(self._create_children(parent_b, parent_a))
+            children.append(self._create_children(parent_b, parent_a)) # pylint: disable=arguments-out-of-order
         return children
 
     def mutate_population(self, generation: list) -> list:
         """Mutates a small percentage of the population."""
+        #maybe should use the mutation percentage based on the size of population
+        #test different percentages
         mutated_population = []
         for path in generation:
             if random.random() < self.mutation_rate:
