@@ -23,23 +23,36 @@ class Selection:
 
         return total_distance
 
-    def survivors(self, old_generation: list, ff: FitnessFunction) -> list:
+    def survivors(self, curr_generation: list, ff: FitnessFunction) -> list:
         """Select half of the population based on fitness function."""
         #implement the fitness function here instead
         survivors = []
-        random.shuffle(old_generation)
-        mid = len(old_generation) // 2
+        random.shuffle(curr_generation)
+        mid = len(curr_generation) // 2
 
         for i in range(mid):
-            fit_1 = ff.fitness_function_normalized(old_generation[i])
-            fit_2 = ff.fitness_function_normalized(old_generation[i + mid])
+            fit_1 = ff.fitness_function_normalized(curr_generation[i])
+            fit_2 = ff.fitness_function_normalized(curr_generation[i + mid])
             if fit_1 > fit_2:
-                survivors.append(old_generation[i])
+                survivors.append(curr_generation[i])
                 #print(f"Choosing the better fit: {fit_1}")
             else:
-                survivors.append(old_generation[i + mid])
+                survivors.append(curr_generation[i + mid])
                 #print(f"Choosing the better fit: {fit_2}")
 
+        return survivors
+
+    def elitism(self,
+                curr_generation: list,
+                ff: FitnessFunction,
+                survive_rate: float = 0.5) -> list:
+        "Selects survivors based on elitism, ie the top"
+        #sort in descending order
+        sorted_population = sorted(curr_generation,
+                                   key=ff.fitness_function_normalized,
+                                   reverse=True)
+        num_survivors = int(len(curr_generation) * survive_rate) #calc amount of survivors
+        survivors = sorted_population[:num_survivors] #cut off the rest from the sorted_popilation
         return survivors
 
     # --- Optional Selection Methods ---
