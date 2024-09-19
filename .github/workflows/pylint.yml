@@ -35,8 +35,11 @@ jobs:
           pip install --upgrade pylint
           pip install -r requirements.txt
 
-      # Finally run the linter, based in a configuration file .pylintrc in cwd
+      # Set PYTHONPATH and run Pylint
       - name: Launch Pylint
+        env:
+          PYTHONPATH: ./src
         run: |
           pylint src/**/*.py
+
           
