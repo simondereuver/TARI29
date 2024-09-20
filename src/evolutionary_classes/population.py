@@ -83,9 +83,9 @@ class Population:
             mutated_population.append(path)
         return mutated_population
 
-    def gen_new_population(self, curr_gen: list, selection: Selection, ff: FitnessFunction) -> list:
+    def gen_new_population(self, curr_gen: list, selection: Selection, ff: FitnessFunction, generation: int) -> list:
         """Generate a new population using selection, crossover, and mutation."""
-        survivors = selection.survivors(curr_gen, ff)
+        survivors = selection.survivors(curr_gen, ff, generation)
         children = self.crossovers(survivors)
         combined_population = survivors + children
         new_population = self.mutate_population(combined_population)

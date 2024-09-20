@@ -6,9 +6,13 @@ from main_classes.graph import Graph
 from evolutionary_classes.selection import Selection
 from evolutionary_classes.fitness_function import FitnessFunction
 from evolutionary_classes.population import Population
+import logging
 
 NUMBER_OF_NODES = 10
 EDGE_WEIGHT_SPAN = (10, 100)
+
+
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 g = Graph(NUMBER_OF_NODES, EDGE_WEIGHT_SPAN)
 
@@ -23,7 +27,7 @@ print(f"Lowerbound estimated: {lowerbound1}")
 
 #print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
 
-#g.show_graph(graph)
+g.show_graph(graph)
 
 population_mngr = Population()
 selection_mngr = Selection()
@@ -33,9 +37,22 @@ initial_population = population_mngr.initial_population(graph)
 NUM_GENERATIONS = 25
 curr_gen = initial_population
 
+clustering_coeff = selection_mngr.calculate_clustering(graph)
+print(f"Clustering Coefficient: {clustering_coeff:.3f}")
+
+# Decide on selection method based on clustering
+if clustering_coeff < 1:
+    print("Graph is clustered. Using selection methods that promote diversity.")
+    # choose a selection method that promotes diversity
+else:
+    print("Graph is not clustered. Focusing on exploitation in selection.")
+
+# Plot tour length distribution
+selection_mngr.plot_tour_length_distribution(graph, num_samples=5000)
+
 #run for a set of generations
 for generation in range(NUM_GENERATIONS):
-    curr_gen = population_mngr.gen_new_population(curr_gen, selection_mngr, ff)
+    curr_gen = population_mngr.gen_new_population(curr_gen, selection_mngr, ff, generation)
 
 if not curr_gen:
     print("\nNo valid paths found in the final generation.")
