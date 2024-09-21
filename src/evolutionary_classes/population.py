@@ -5,12 +5,13 @@ Module containing population-based search
 
 import random
 import numpy as np
+from evolutionary_classes.crossover import Crossover
 from evolutionary_classes.selection import Selection
 from evolutionary_classes.fitness_function import FitnessFunction
 
 class Population:
     """Class for generating and modifying the population"""
-    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50)):
+    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50), crossover_method="Simple"):
         """
         Initialize Population class.
         
@@ -28,6 +29,7 @@ class Population:
 
         self.mutation_rate = mutation_rate
         self.population_size_range = population_size_range
+        self.crossover_method = crossover_method
 
     def initial_population(self, graph: np.ndarray) -> list:
         """Generate the initial population."""
@@ -48,99 +50,18 @@ class Population:
             random_paths.append(random_path)
 
         return random_paths
-
-    def _create_children(self, parent_a: list, parent_b: list) -> list:
-        """Creates a child out of a pair of parents."""
-        #there are different crossover methods, we need to test to see which gives best result
-        #Order Crossover (OX)
-        #Cycle Crossover (CX)
-        #Edge Recombination Crossover (ERX)
-        children = []
-        start = random.randint(0, len(parent_a) - 1)
-        end = random.randint(start, len(parent_a))
-        sub_path_a = parent_a[start:end]
-        sub_path_b = [item for item in parent_b if item not in sub_path_a]
-        for i in range(len(parent_a)):
-            if start <= i < end:
-                children.append(sub_path_a.pop(0))
-            else:
-                children.append(sub_path_b.pop(0))
-        return children
-
-    def _order_crossover(self, parent_a: list, parent_b:list)-> list:
-        """Creates s child using Order Crossover(OX)."""
-        size= len(parent_a)
-        child=[None]* size
-
-        # Randomly select a subset
-        start, end=sorted(random.sample(range(size),2))
-        # Copy the subset from parent to A child
-        child[start:end +1]=parent_a[start:end +1]
-        # Fill the remaining positions with genes from parent B in order
-        b_index=end+1
-        c_index=end+1
-        while None in child: 
-            if parent_b[b_index % size] not in child:
-                child[c_index % size]= parent_b[b_index % size]
-                c_index += 1
-        return child
     
-    def _cycle_crossover(self, parent_a :list, parent_b:list)-> list:
-        """Create a child using Cycle Crossover(CX)"""
-        size= len(parent_a)
-        child=[None]* size
-        indices=list(range(size))
-        cycle=0
-
-        while None in child:
-            if cycle % 2==0:
-                index=indices[0]
-                start_gene= parent_a[index]
-                while True:
-                    child[index]= parent_a[index]
-                    indices.remove(index)
-                    index=parent_a.index(parent_b[index])
-                    if parent_a[index]== start_gene:
-                        break
-            else :
-                for index in indices:
-                    child[index]=parent_b[index]
-                indices=[]
-            cycle +=1
-        return child    
-           
-    def _pmx_crossover(self, parent_a :list, parent_b:list)-> list:
-        """Creates a child using partially Mapped Crossover(PMX)"""
-        size= len(parent_a)
-        child=[None]* size
-
-        # Randomly select a subset
-        start, end=sorted(random.sample(range(size),2))
-        # Copy the subset from parent to A child
-        child[start:end +1]=parent_a[start:end +1]
-
-        # Mapping from parent B to parent A
-        mapping={}
-        for i in range(start, end+1):
-            mapping[parent_b[i]]=parent_a[i]
-            # Fill the remaining positions
-            for i in range(size):
-                if child[i] is None:
-                    gene =parent_b[i]
-                    while gene in mapping:
-                            gene=mapping[gene]
-                    child[i]=gene
-        return child 
-         
     def crossovers(self, survivors: list) -> list:
         """Creates crossovers using the _create_children method."""
         #there are different crossover methods, we need to test to see which gives best result
+        crossover = Crossover(self.crossover_method)
+
         children = []
         mid = len(survivors) // 2
         for i in range(mid):
             parent_a, parent_b = survivors[i], survivors[i + mid]
-            children.append(self._create_children(parent_a, parent_b))
-            children.append(self._create_children(parent_b, parent_a)) # pylint: disable=arguments-out-of-order
+            children.append(crossover.create_children(parent_a, parent_b))
+            children.append(crossover.create_children(parent_b, parent_a)) # pylint: disable=arguments-out-of-order
         return children
 
     def mutate_population(self, generation: list) -> list:
