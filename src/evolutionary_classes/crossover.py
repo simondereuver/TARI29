@@ -81,6 +81,8 @@ class Crossover:
         mapping={}
         for i in range(start, end+1):
             mapping[parent_b[i]]=parent_a[i]
+        # Track used genes
+        used_genes = set(child[start:end + 1])
             # Fill the remaining positions
         for i in range(size):
             if child[i] is None:
@@ -89,7 +91,11 @@ class Crossover:
                 while gene in mapping and gene not in visited:
                     visited.add(gene)
                     gene = mapping[gene]
+                # Ensure the gene is not already used
+                while gene in used_genes:
+                    gene = random.choice([g for g in parent_b if g not in used_genes])
                 child[i] = gene
+                used_genes.add(gene)
         return child
 
     def simple(self, parent_a: list, parent_b: list) -> list:
