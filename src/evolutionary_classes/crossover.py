@@ -30,12 +30,17 @@ class Crossover:
         # Copy the subset from parent to A child
         child[start:end +1]=parent_a[start:end +1]
         # Fill the remaining positions with genes from parent B in order
+        # Use a set for faster membership checks
+        child_set = set(child[start:end + 1])
+
         b_index=end+1
         c_index=end+1
         while None in child:
             if parent_b[b_index % size] not in child:
                 child[c_index % size]= parent_b[b_index % size]
+                
                 c_index += 1
+            b_index += 1
         return child
 
     def cycle(self, parent_a :list, parent_b:list)-> list:
@@ -77,12 +82,14 @@ class Crossover:
         for i in range(start, end+1):
             mapping[parent_b[i]]=parent_a[i]
             # Fill the remaining positions
-            for i in range(size):
-                if child[i] is None:
-                    gene =parent_b[i]
-                    while gene in mapping:
-                        gene=mapping[gene]
-                    child[i]=gene
+        for i in range(size):
+            if child[i] is None:
+                gene = parent_b[i]
+                visited = set()
+                while gene in mapping and gene not in visited:
+                    visited.add(gene)
+                    gene = mapping[gene]
+                child[i] = gene
         return child
 
     def simple(self, parent_a: list, parent_b: list) -> list:

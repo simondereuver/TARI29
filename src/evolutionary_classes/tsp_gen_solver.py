@@ -18,7 +18,7 @@ class TSPGeneticSolver:
         """
         # pylint: disable=too-few-public-methods
         self.graph = graph
-        self.population_manager = Population(mutation_rate, population_size_range, "CX")
+        self.population_manager = Population(mutation_rate, population_size_range, "OX")
         self.selection_manager = Selection()
         self.fitness_function = FitnessFunction(graph, bounds)
 
