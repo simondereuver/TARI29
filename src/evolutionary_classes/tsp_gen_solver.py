@@ -11,6 +11,7 @@ from evolutionary_classes.population import Population
 class TSPGeneticSolver:
     """Combines the other classes to genetically solve TSP"""
 
+    # pylint: disable=too-many-arguments
     def __init__(self, graph: np.ndarray, population_size_range=(10, 50),
                  mutation_rate=0.01,
                  bounds=None,
@@ -49,6 +50,3 @@ class TSPGeneticSolver:
         best_path.append(best_path[0])
 
         return best_path, best_distance
-
-
-

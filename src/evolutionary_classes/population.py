@@ -11,7 +11,7 @@ from evolutionary_classes.fitness_function import FitnessFunction
 
 class Population:
     """Class for generating and modifying the population"""
-    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50), crossover_method="Simple"):
+    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50), crossover_method="OX"):
         """
         Initialize Population class.
         
@@ -50,7 +50,7 @@ class Population:
             random_paths.append(random_path)
 
         return random_paths
-    
+
     def crossovers(self, survivors: list) -> list:
         """Creates crossovers using the _create_children method."""
         #there are different crossover methods, we need to test to see which gives best result

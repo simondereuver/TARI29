@@ -27,10 +27,10 @@ class Crossover:
 
         # Randomly select a subset
         start, end = sorted(random.sample(range(size), 2))
-        
+
         # Copy the subset from parent A to child
         child[start:end + 1] = parent_a[start:end + 1]
-        
+
         # Use a set for faster membership checks
         child_set = set(child[start:end + 1])
 
@@ -46,7 +46,7 @@ class Crossover:
             b_index += 1
 
         return child
-        
+
     def cycle(self, parent_a :list, parent_b:list)-> list:
         """Create a child using Cycle Crossover(CX)"""
         size= len(parent_a)
@@ -78,7 +78,7 @@ class Crossover:
 
         # Randomly select a subset
         start, end = sorted(random.sample(range(size), 2))
-        
+
         # Copy the subset from parent A to child
         child[start:end + 1] = parent_a[start:end + 1]
 
