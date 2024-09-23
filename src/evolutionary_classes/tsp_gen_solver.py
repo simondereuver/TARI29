@@ -11,11 +11,8 @@ from evolutionary_classes.population import Population
 class TSPGeneticSolver:
     """Combines the other classes to genetically solve TSP"""
 
-    # pylint: disable=too-many-arguments
-    def __init__(self, graph: np.ndarray, population_size_range=(10, 50),
-                 mutation_rate=0.01,
-                 bounds=None,
-                 crossover_method: str = "Simple"):
+    # pylint: disable=too-many-arguments disable=line-too-long
+    def __init__(self, graph: np.ndarray, population_size_range=(10, 50),mutation_rate=0.01,bounds=None,crossover_method: str = "Simple"):
         """ s
         Initialize the GeneticAlgorithmSolver.
         """
