@@ -5,7 +5,7 @@ from main_classes.graph import Graph
 #from evolutionary_classes.selection import Selection
 #from evolutionary_classes.fitness_function import FitnessFunction
 #from evolutionary_classes.population import Population
-
+from main_classes.data_visualization import DataVisualization
 from evolutionary_classes.tsp_gen_solver import TSPGeneticSolver
 
 NUMBER_OF_NODES = 10
@@ -14,6 +14,14 @@ EDGE_WEIGHT_SPAN = (10, 100)
 g = Graph(NUMBER_OF_NODES, EDGE_WEIGHT_SPAN)
 
 graph = g.generate_random_graph(seed=1)
+
+
+analyzed_result, upper_tri = g.analyze_edge_weights(graph)
+
+print(analyzed_result)
+data_vis = DataVisualization()
+
+data_vis.plot_edge_weights_distribution(upper_tri ,analyzed_result)
 
 print(graph)
 

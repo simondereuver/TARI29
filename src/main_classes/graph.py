@@ -189,3 +189,40 @@ class Graph:
             max_1tree_weight = max(max_1tree_weight, one_tree_weight)
 
         return max_1tree_weight
+
+    #dont need since this will always be 1
+    def clustering_coefficient(self, graph: np.ndarray) -> float:
+        """Calculate the average clustering coefficient of the graph."""
+        g = nx.from_numpy_array(graph)
+        return nx.average_clustering(g)
+
+    def analyze_edge_weights(self, graph: np.ndarray) -> dict:
+        """Analyze the edge weights of the graph."""
+        #only need upper triangle (k=1) since we have symmetric distance matrix
+        upper_triangle = graph[np.triu_indices_from(graph, k=1)]
+        statistics = {
+            "min": np.min(upper_triangle),
+            "max": np.max(upper_triangle),
+            "mean": np.mean(upper_triangle),
+            "median": np.median(upper_triangle),
+            "std_dev": np.std(upper_triangle),
+            "num_egdes": np.size(upper_triangle),
+            #"variance": np.var(upper_triangle, ddof=1), variance is std_dev^2
+        }
+        return statistics, upper_triangle
+
+"""
+np.min = 30
+np.max = 40
+np.mean = 35
+np.median = 35
+np.std = 2
+size= 100
+
+np.min = 30
+np.max = 130
+np.mean = 100 
+np.median = 77
+np.std = 15
+size= 100
+"""
