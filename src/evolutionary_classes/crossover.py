@@ -20,70 +20,77 @@ class Crossover:
 
         self.cross_over_method = cross_over_method
 
-    def order(self, parent_a: list, parent_b:list)-> list:
-        """Creates s child using Order Crossover(OX)."""
-        size= len(parent_a)
-        child=[None]* size
+    def order(self, parent_a: list, parent_b: list) -> list:
+        """Creates a child using Order Crossover (OX)."""
+        size = len(parent_a)
+        child = [None] * size
 
         # Randomly select a subset
-        start, end=sorted(random.sample(range(size),2))
-        # Copy the subset from parent to A child
-        child[start:end +1]=parent_a[start:end +1]
-        # Fill the remaining positions with genes from parent B in order
+        start, end = sorted(random.sample(range(size), 2))
+        
+        # Copy the subset from parent A to child
+        child[start:end + 1] = parent_a[start:end + 1]
+        
         # Use a set for faster membership checks
         child_set = set(child[start:end + 1])
 
-        b_index=end+1
-        c_index=end+1
+        # Fill the remaining positions with genes from parent B in order
+        b_index = end + 1
+        c_index = end + 1
         while None in child:
-            if parent_b[b_index % size] not in child:
-                child[c_index % size]= parent_b[b_index % size]
-                
+            gene = parent_b[b_index % size]
+            if gene not in child_set:
+                child[c_index % size] = gene
+                child_set.add(gene)
                 c_index += 1
             b_index += 1
-        return child
 
+        return child
+        
     def cycle(self, parent_a :list, parent_b:list)-> list:
         """Create a child using Cycle Crossover(CX)"""
         size= len(parent_a)
         child=[None]* size
         indices=list(range(size))
         cycle=0
-
         while None in child:
-            if cycle % 2==0:
-                index=indices[0]
-                start_gene= parent_a[index]
+            if cycle % 2 == 0:
+                index = next(iter(indices))
+                start_gene = parent_a[index]
                 while True:
-                    child[index]= parent_a[index]
+                    child[index] = parent_a[index]
                     indices.remove(index)
-                    index=parent_a.index(parent_b[index])
-                    if parent_a[index]== start_gene:
+                    index = parent_a.index(parent_b[index])
+                    if parent_a[index] == start_gene:
                         break
-            else :
+            else:
                 for index in indices:
-                    child[index]=parent_b[index]
-                indices=[]
-            cycle +=1
+                    child[index] = parent_b[index]
+                indices.clear()
+            cycle += 1
+
         return child
 
-    def pmx(self, parent_a :list, parent_b:list)-> list:
-        """Creates a child using partially Mapped Crossover(PMX)"""
-        size= len(parent_a)
-        child=[None]* size
+    def pmx(self, parent_a: list, parent_b: list) -> list:
+        """Creates a child using Partially Mapped Crossover (PMX)"""
+        size = len(parent_a)
+        child = [None] * size
 
         # Randomly select a subset
-        start, end=sorted(random.sample(range(size),2))
-        # Copy the subset from parent to A child
-        child[start:end +1]=parent_a[start:end +1]
+        start, end = sorted(random.sample(range(size), 2))
+        
+        # Copy the subset from parent A to child
+        child[start:end + 1] = parent_a[start:end + 1]
 
         # Mapping from parent B to parent A
-        mapping={}
-        for i in range(start, end+1):
-            mapping[parent_b[i]]=parent_a[i]
+        mapping = {}
+        for i in range(start, end + 1):
+            mapping[parent_b[i]] = parent_a[i]
+
         # Track used genes
         used_genes = set(child[start:end + 1])
-            # Fill the remaining positions
+
+        # Fill the remaining positions
         for i in range(size):
             if child[i] is None:
                 gene = parent_b[i]
@@ -92,10 +99,14 @@ class Crossover:
                     visited.add(gene)
                     gene = mapping[gene]
                 # Ensure the gene is not already used
-                while gene in used_genes:
-                    gene = random.choice([g for g in parent_b if g not in used_genes])
+                if gene in used_genes:
+                    for g in parent_b:
+                        if g not in used_genes:
+                            gene = g
+                            break
                 child[i] = gene
                 used_genes.add(gene)
+
         return child
 
     def simple(self, parent_a: list, parent_b: list) -> list:

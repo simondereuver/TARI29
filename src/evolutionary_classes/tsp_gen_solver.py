@@ -7,18 +7,20 @@ from evolutionary_classes.selection import Selection
 from evolutionary_classes.fitness_function import FitnessFunction
 from evolutionary_classes.population import Population
 
+
 class TSPGeneticSolver:
     """Combines the other classes to genetically solve TSP"""
 
     def __init__(self, graph: np.ndarray, population_size_range=(10, 50),
                  mutation_rate=0.01,
-                 bounds=None):
-        """
+                 bounds=None,
+                 crossover_method: str = "Simple"):
+        """ s
         Initialize the GeneticAlgorithmSolver.
         """
         # pylint: disable=too-few-public-methods
         self.graph = graph
-        self.population_manager = Population(mutation_rate, population_size_range, "OX")
+        self.population_manager = Population(mutation_rate, population_size_range, crossover_method)
         self.selection_manager = Selection()
         self.fitness_function = FitnessFunction(graph, bounds)
 
@@ -47,3 +49,6 @@ class TSPGeneticSolver:
         best_path.append(best_path[0])
 
         return best_path, best_distance
+
+
+
