@@ -189,3 +189,26 @@ class Graph:
             max_1tree_weight = max(max_1tree_weight, one_tree_weight)
 
         return max_1tree_weight
+
+    def nearest_neighbor(self, graph):
+        """Nearest neighbour for upperbound"""
+        nodes = len(graph)
+        start = random.randint(0, nodes - 1)
+
+        unvisited = set(range(nodes))
+        unvisited.remove(start)
+        tour = [start]
+        current_node = start
+
+        while unvisited:
+            next_node = min(unvisited, key=lambda node: graph[current_node][node])
+            tour.append(next_node)
+            unvisited.remove(next_node)
+            current_node = next_node
+
+        tour.append(start)
+
+        x = np.sum(graph[tour[:-1], tour[1:]])
+        x += graph[tour[-1], tour[0]]
+
+        return x
