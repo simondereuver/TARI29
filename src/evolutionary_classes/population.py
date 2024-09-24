@@ -5,12 +5,13 @@ Module containing population-based search
 
 import random
 import numpy as np
+from evolutionary_classes.crossover import Crossover
 from evolutionary_classes.selection import Selection
 from evolutionary_classes.fitness_function import FitnessFunction
 
 class Population:
     """Class for generating and modifying the population"""
-    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50)):
+    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50), crossover_method="OX"):
         """
         Initialize Population class.
         
@@ -28,6 +29,7 @@ class Population:
 
         self.mutation_rate = mutation_rate
         self.population_size_range = population_size_range
+        self.crossover_method = crossover_method
 
     def initial_population(self, graph: np.ndarray) -> list:
         """Generate the initial population."""
@@ -49,33 +51,17 @@ class Population:
 
         return random_paths
 
-    def _create_children(self, parent_a: list, parent_b: list) -> list:
-        """Creates a child out of a pair of parents."""
-        #there are different crossover methods, we need to test to see which gives best result
-        #Order Crossover (OX)
-        #Cycle Crossover (CX)
-        #Edge Recombination Crossover (ERX)
-        children = []
-        start = random.randint(0, len(parent_a) - 1)
-        end = random.randint(start, len(parent_a))
-        sub_path_a = parent_a[start:end]
-        sub_path_b = [item for item in parent_b if item not in sub_path_a]
-        for i in range(len(parent_a)):
-            if start <= i < end:
-                children.append(sub_path_a.pop(0))
-            else:
-                children.append(sub_path_b.pop(0))
-        return children
-
     def crossovers(self, survivors: list) -> list:
         """Creates crossovers using the _create_children method."""
         #there are different crossover methods, we need to test to see which gives best result
+        crossover = Crossover(self.crossover_method)
+
         children = []
         mid = len(survivors) // 2
         for i in range(mid):
             parent_a, parent_b = survivors[i], survivors[i + mid]
-            children.append(self._create_children(parent_a, parent_b))
-            children.append(self._create_children(parent_b, parent_a)) # pylint: disable=arguments-out-of-order
+            children.append(crossover.create_children(parent_a, parent_b))
+            children.append(crossover.create_children(parent_b, parent_a)) # pylint: disable=arguments-out-of-order
         return children
 
     def mutate_population(self, generation: list) -> list:
