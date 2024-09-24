@@ -90,9 +90,19 @@ class Population:
             mutated_population.append(path)
         return mutated_population
 
-    def gen_new_population(self, curr_gen: list, selection: Selection, ff: FitnessFunction) -> list:
+    def gen_new_population(self, curr_gen: list, selection: Selection, fitness_scores: np.ndarray) -> list:
         """Generate a new population using selection, crossover, and mutation."""
-        survivors = selection.survivors(curr_gen, ff)
+        selection_methods = [
+                                (selection.stochastic_universal_sampling, 0.3),
+                                (selection.roulette_wheel_selection, 0.2)
+                            ]
+        survivors = np.empty((0, len(curr_gen[0])), dtype=int)
+        #survivors = selection.stochastic_universal_sampling(curr_gen, fitness_scores)
+        for method, percentage in selection_methods:
+            selected = method(curr_gen, fitness_scores, percentage)
+            survivors = np.concatenate((survivors, selected))
+
+        survivors = survivors.tolist()
         children = self.crossovers(survivors)
         combined_population = survivors + children
         new_population = self.mutate_population(combined_population)

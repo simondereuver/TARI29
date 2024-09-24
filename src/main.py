@@ -8,38 +8,42 @@ from main_classes.graph import Graph
 
 from evolutionary_classes.tsp_gen_solver import TSPGeneticSolver
 
-NUMBER_OF_NODES = 10
+NUMBER_OF_NODES = 100
 EDGE_WEIGHT_SPAN = (10, 100)
 
-g = Graph(NUMBER_OF_NODES, EDGE_WEIGHT_SPAN)
+def main():
+    g = Graph(NUMBER_OF_NODES, EDGE_WEIGHT_SPAN)
 
-graph = g.generate_random_graph(seed=1)
+    graph = g.generate_random_graph(seed=1)
 
-print(graph)
+    print(graph)
 
-shortest_path, weight = g.solve_bf(graph, 0)
+    #shortest_path, weight = g.solve_bf(graph, 0)
 
-lowerbound1 = g.max_one_tree_lower_bound(graph)
-#print(f"Lowerbound estimated: {lowerbound1}")
+    lowerbound1 = g.max_one_tree_lower_bound(graph)
+    #print(f"Lowerbound estimated: {lowerbound1}")
 
-print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
+    #print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
 
-#g.show_graph(graph)
+    #g.show_graph(graph)
 
-#create dictionary to set parameters instead
-solver = TSPGeneticSolver(
-    graph,
-    population_size_range=(10, 50),
-    mutation_rate=0.01,
-    bounds=(lowerbound1, None))
+    #create dictionary to set parameters instead
+    solver = TSPGeneticSolver(
+        graph,
+        population_size_range=(200, 201),
+        mutation_rate=0.01,
+        bounds=(lowerbound1, None))
 
-best_path, best_distance = solver.run(generations=200)
+    best_path, best_distance = solver.run(generations=100)
 
-if best_path:
-    print(f"\nBest path found: {best_path} with distance: {best_distance}")
-else:
-    print("\nNo valid paths found.")
+    if best_path:
+        print(f"\nBest path found: {best_path} with distance: {best_distance}")
+    else:
+        print("\nNo valid paths found.")
 
+
+if __name__ == "__main__":
+    main()
 #Example usage to run the 1-tree on 10 different graphs
 #for i in range(10):
 #    graph = g.generate_random_graph(i)

@@ -4,6 +4,7 @@ Module containing fitness function(s)
 
 import warnings
 from typing import List
+from multiprocessing import Pool
 import numpy as np
 
 class FitnessFunction:
@@ -53,3 +54,14 @@ class FitnessFunction:
             return lower / x
 
         return (higher - x) / (higher - lower)
+
+    def compute_fitness_scores(self, generation: list) -> np.ndarray:
+        """Compute all fitness scores for an entire generation"""
+        gen = np.array(generation)
+        def eval_fitness(path: np.array) -> float:
+            return self.bounds[0] / self._calculate_distance(path)
+
+        with Pool() as pool:
+            fitness_scores = np.array(pool.map(eval_fitness, gen))
+
+        return fitness_scores
