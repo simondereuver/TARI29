@@ -34,9 +34,22 @@ class Selection:
                 survivors.append(old_generation[i])
                 #print(f"Choosing the better fit: {fit_1}")
             else:
-                survivors.append(old_generation[i + mid])
+                survivors.append(curr_generation[i + mid])
                 #print(f"Choosing the better fit: {fit_2}")
 
+        return survivors
+
+    def elitism(self,
+                curr_generation: list,
+                ff: FitnessFunction,
+                survive_rate: float = 0.5) -> list:
+        "Selects survivors based on elitism, ie the top"
+        #sort in descending order
+        sorted_population = sorted(curr_generation,
+                                   key=ff.fitness_function_normalized,
+                                   reverse=True)
+        num_survivors = int(len(curr_generation) * survive_rate) #calc amount of survivors
+        survivors = sorted_population[:num_survivors] #cut off the rest from the sorted_popilation
         return survivors
 
     # --- Optional Selection Methods ---

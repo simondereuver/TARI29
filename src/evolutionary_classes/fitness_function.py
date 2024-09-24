@@ -18,6 +18,7 @@ class FitnessFunction:
         if bounds is not None:
             self.bounds = bounds
         else:
+            self.bounds = None
             warnings.warn("No boundaries set. FitnessFunction.bound is None", RuntimeWarning)
 
     def _calculate_distance(self, route: List[int]) -> int:

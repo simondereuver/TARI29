@@ -1,5 +1,4 @@
 """main program code here"""
-
 # example code for generating random graphs
 from main_classes.graph import Graph
 #from evolutionary_classes.selection import Selection
@@ -30,9 +29,11 @@ def main():
     #create dictionary to set parameters instead
     solver = TSPGeneticSolver(
         graph,
-        population_size_range=(200, 201),
+        population_size_range=(10, 50),
         mutation_rate=0.01,
-        bounds=(lowerbound1, None))
+        bounds=(lowerbound1, None),
+        crossover_method="CX"
+        )
 
     best_path, best_distance = solver.run(generations=100)
 
@@ -56,3 +57,5 @@ if __name__ == "__main__":
 #    lowerbound1 = g.max_one_tree_lower_bound(graph)
 
 #    print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
+
+
