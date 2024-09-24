@@ -43,11 +43,21 @@ class Population:
         max_size = self.population_size_range[1] * total_destinations
         population_size = random.randint(min_size, max_size)
 
-        for _ in range(population_size):
-            random_path = list(range(1, total_destinations))
-            random.shuffle(random_path)
-            random_path = [0] + random_path
-            random_paths.append(random_path)
+        #for _ in range(population_size):
+        #    random_path = list(range(1, total_destinations))
+        #    random.shuffle(random_path)
+        #    random_path = [0] + random_path
+        #    random_paths.append(random_path)
+        
+        random_paths = np.empty((population_size, total_destinations), dtype=int)
+
+        for i in range(population_size):
+            path = list(range(1, total_destinations))
+            random.shuffle(path)
+
+            path = [0] + path
+
+            random_paths[i] = path
 
         return random_paths
 
@@ -76,20 +86,21 @@ class Population:
             mutated_population.append(path)
         return mutated_population
 
-    def gen_new_population(self, curr_gen: list, selection: Selection, fitness_scores: np.ndarray) -> list:
+    def gen_new_population(self, curr_gen: np.ndarray, selection: Selection, fitness_scores: np.ndarray) -> list:
         """Generate a new population using selection, crossover, and mutation."""
+        elites = selection.elitism(curr_gen, fitness_scores, 0.1)
+        elites = elites.tolist()
         selection_methods = [
-                                (selection.stochastic_universal_sampling, 0.3),
-                                (selection.roulette_wheel_selection, 0.2)
+                                (selection.roulette_wheel_selection, 0.45)
                             ]
         survivors = np.empty((0, len(curr_gen[0])), dtype=int)
         #survivors = selection.stochastic_universal_sampling(curr_gen, fitness_scores)
-        for method, percentage in selection_methods:
-            selected = method(curr_gen, fitness_scores, percentage)
+        for method, survive_rate in selection_methods:
+            selected = method(curr_gen, fitness_scores, survive_rate)
             survivors = np.concatenate((survivors, selected))
 
         survivors = survivors.tolist()
         children = self.crossovers(survivors)
-        combined_population = survivors + children
+        combined_population = survivors + children + elites
         new_population = self.mutate_population(combined_population)
         return new_population

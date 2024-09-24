@@ -14,7 +14,7 @@ class TSPGeneticSolver:
     """Combines the other classes to genetically solve TSP"""
 
     # pylint: disable=too-many-arguments,line-too-long,too-many-positional-arguments
-    def __init__(self, graph: np.ndarray, population_size_range=(10, 50),mutation_rate=0.01,bounds=None,crossover_method: str = "Simple"):
+    def __init__(self, graph: np.ndarray, population_size_range=(10, 50), mutation_rate=0.01, bounds=None, crossover_method: str = "Simple"):
         """
         Initialize the GeneticAlgorithmSolver.
         """
@@ -36,11 +36,13 @@ class TSPGeneticSolver:
 
         for generation in tqdm(range(generations), desc="Generations"):
             fitness_scores = compute_fitness_scores(self.graph, current_generation, self.ff.bounds)
+            print(fitness_scores.max())
             current_generation = self.population_manager.gen_new_population(
                 current_generation,
                 self.selection_manager,
                 fitness_scores)
-
+            current_generation = np.array(current_generation)
+        current_generation = current_generation.tolist()
         if not current_generation:
             print("\nNo valid paths found in the final generation.")
             return None, None

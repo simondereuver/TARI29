@@ -7,7 +7,7 @@ from main_classes.graph import Graph
 
 from evolutionary_classes.tsp_gen_solver import TSPGeneticSolver
 
-NUMBER_OF_NODES = 100
+NUMBER_OF_NODES = 10
 EDGE_WEIGHT_SPAN = (10, 100)
 
 def main():
@@ -19,19 +19,19 @@ def main():
 
     #shortest_path, weight = g.solve_bf(graph, 0)
 
-    lowerbound1 = g.max_one_tree_lower_bound(graph)
+    lowerbound = g.max_one_tree_lower_bound(graph)
     #print(f"Lowerbound estimated: {lowerbound1}")
 
     #print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
-
+    print(f"Lowerbound: {lowerbound}")
     #g.show_graph(graph)
 
     #create dictionary to set parameters instead
     solver = TSPGeneticSolver(
         graph,
-        population_size_range=(10, 50),
+        population_size_range=(100, 101),
         mutation_rate=0.01,
-        bounds=(lowerbound1, None),
+        bounds=(lowerbound, None),
         crossover_method="CX"
         )
 
@@ -39,6 +39,7 @@ def main():
 
     if best_path:
         print(f"\nBest path found: {best_path} with distance: {best_distance}")
+        print(f"Score: {lowerbound / best_distance}")
     else:
         print("\nNo valid paths found.")
 

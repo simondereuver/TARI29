@@ -3,6 +3,7 @@
 Module containing selection, solutions are selected based on their fitness to produce offspring
 """
 import random
+import math
 import numpy as np
 from evolutionary_classes.fitness_function import FitnessFunction
 
@@ -34,23 +35,23 @@ class Selection:
                 survivors.append(old_generation[i])
                 #print(f"Choosing the better fit: {fit_1}")
             else:
-                survivors.append(curr_generation[i + mid])
+                survivors.append(old_generation[i + mid])
                 #print(f"Choosing the better fit: {fit_2}")
 
         return survivors
 
-    def elitism(self,
-                curr_generation: list,
-                ff: FitnessFunction,
-                survive_rate: float = 0.5) -> list:
-        "Selects survivors based on elitism, ie the top"
+    def elitism(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5) -> np.ndarray:
+        """Selects survivors based on elitism, ie the top"""
         #sort in descending order
-        sorted_population = sorted(curr_generation,
-                                   key=ff.fitness_function_normalized,
-                                   reverse=True)
-        num_survivors = int(len(curr_generation) * survive_rate) #calc amount of survivors
-        survivors = sorted_population[:num_survivors] #cut off the rest from the sorted_popilation
-        return survivors
+        sorted_indices = np.argsort(fitness)[::-1]
+        #sorted_population = sorted(generation, fitness, reverse=True)
+        num_survivors = max(1, int(math.ceil(survive_rate * len(generation))))
+        num_survivors = min(num_survivors, len(generation))
+        #survivors = sorted_population[:num_survivors] #cut off the rest from the sorted_popilation
+        elite_indices = sorted_indices[:num_survivors]
+        elites = generation[elite_indices]
+
+        return elites
 
     # --- Optional Selection Methods ---
     #currently we compare two solutions, and pick the better one, to be a survivor
@@ -65,22 +66,26 @@ class Selection:
     #we should try to look into this and see what gives us the best solution rate
     #do we also want to mutate a small portion of the gen?
 
-    def roulette_wheel_selection(self, generation: list, fitness, percentage_of_gen: float):
+    def roulette_wheel_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float) -> np.ndarray:
         """Perform Roulette Wheel Selection"""
-        gen = np.array(generation)
+
         total_fitness = fitness.sum()
+        size_gen = len(generation)
 
         if total_fitness == 0:
             # If total fitness is zero, select uniformly at random
-            probabilities = np.full(len(fitness), 1 / len(fitness))
+            probabilities = np.full(size_gen, 1 / size_gen)
         else:
             probabilities = fitness / total_fitness
+            probabilities /= probabilities.sum()
 
-        num_selected = int(percentage_of_gen * len(gen))
+        num_selected = max(1, int(survive_rate * size_gen))
 
-        selected_indices = np.random.choice(len(gen), size=num_selected, replace=True, p=probabilities)
+        num_selected = min(num_selected, size_gen)
 
-        selected = gen[selected_indices]
+        selected_indices = np.random.choice(size_gen, size=num_selected, replace=True, p=probabilities)
+
+        selected = generation[selected_indices]
 
         return selected
 
