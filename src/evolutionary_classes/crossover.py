@@ -184,8 +184,7 @@ class Crossover:
             self,
             current_node: int,
             parent: list,
-            visited: set) -> int:
-        
+            visited:set)->int:
         size = len(parent)
         index = parent.index(current_node)
 
