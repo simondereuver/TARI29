@@ -6,7 +6,7 @@ import random
 
 class Crossover:
     """Class for generating children from parents"""
-    def __init__(self, cross_over_method="Simple"):
+    def __init__(self, cross_over_method="Simple", graph=None):
         """
         Initialize Crossover class.
 
@@ -15,10 +15,17 @@ class Crossover:
         """
 
         # Check if the cross_over_method is valid
-        if cross_over_method not in ["Simple", "OX", "CX", "PMX"]:
-            raise ValueError("Invalid cross_over_method. Choose from 'Simple', 'OX', 'CX', 'PMX'")
+        if cross_over_method not in ["Simple", "OX", "CX", "PMX", "SCX"]:
+            raise ValueError("Invalid cross_over_method. Choose from 'Simple', 'OX', 'CX', 'PMX', 'SCX'")
 
         self.cross_over_method = cross_over_method
+
+        if cross_over_method == "SCX":
+            if graph is None:
+                raise ValueError("Graph must be provided for SCX crossover method.")
+            self.distance_matrix = graph
+        else:
+            self.distance_matrix = None
 
     def order(self, parent_a: list, parent_b: list) -> list:
         """Creates a child using Order Crossover (OX)."""
@@ -123,6 +130,60 @@ class Crossover:
             else:
                 child.append(sub_path_b.pop(0))
         return child
+    
+    def scx(self, parent_a: list, parent_b: list) -> list:
+        size = len(parent_a)
+        child = []
+        visited = set()
+
+        # Start with the first node of parent_a
+        current_node = parent_a[0]
+        child.append(current_node)
+        visited.add(current_node)
+
+        while len(child) < size:
+            # Find the next legitimate node from parent_a
+            next_a = self._find_next_legitimate(current_node, parent_a, visited)
+
+            # Find the next legitimate node from parent_b
+            next_b = self._find_next_legitimate(current_node, parent_b, visited)
+
+            # If both are None, select a random unvisited node
+            if next_a is None and next_b is None:
+                remaining_nodes = set(range(size)) - visited
+                chosen_node = random.choice(list(remaining_nodes))
+            else:
+                # Compare distances and choose the better edge
+                if next_a is None:
+                    chosen_node = next_b
+                elif next_b is None:
+                    chosen_node = next_a
+                else:
+                    distance_a = self.distance_matrix[current_node][next_a]
+                    distance_b = self.distance_matrix[current_node][next_b]
+
+                    if distance_a < distance_b:
+                        chosen_node = next_a
+                    else:
+                        chosen_node = next_b
+
+            # Add the chosen node to the child
+            child.append(chosen_node)
+            visited.add(chosen_node)
+            current_node = chosen_node
+
+        return child
+    
+    def _find_next_legitimate(self, current_node: int, parent: list, visited: set) -> int:
+        """Finds the next legitimate (not yet visited) node in the given parent tour after the current node."""
+        size = len(parent)
+        index = parent.index(current_node)
+
+        for i in range(1, size):
+            candidate = parent[(index + i) % size]
+            if candidate not in visited:
+                return candidate
+        return None
 
     def create_children(self, parent_a: list, parent_b: list) -> list:
         """Creates a child out of a pair of parents."""
@@ -131,7 +192,8 @@ class Crossover:
             "Simple": self.simple,
             "OX": self.order,
             "CX": self.cycle,
-            "PMX": self.pmx
+            "PMX": self.pmx,
+            "SCX": self.scx
         }
 
         return switcher[self.cross_over_method](parent_a, parent_b)

@@ -11,7 +11,7 @@ from evolutionary_classes.fitness_function import FitnessFunction
 
 class Population:
     """Class for generating and modifying the population"""
-    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50), crossover_method="OX"):
+    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50), crossover_method="OX", graph=None):
         """
         Initialize Population class.
         
@@ -26,10 +26,16 @@ class Population:
             raise ValueError("population_size_range must be a tuple with two values")
         if population_size_range[0] >= population_size_range[1]:
             raise ValueError("population_size_range must be a tuple (min, max) where min < max")
-
+        
+        self.graph = graph
         self.mutation_rate = mutation_rate
         self.population_size_range = population_size_range
         self.crossover_method = crossover_method
+
+        if crossover_method == "SCX":
+            self.crossover_manager = Crossover(crossover_method, graph)
+        else:
+            self.crossover_manager = Crossover(crossover_method)
 
     def initial_population(self, graph: np.ndarray) -> list:
         """Generate the initial population."""
@@ -54,7 +60,8 @@ class Population:
     def crossovers(self, survivors: list) -> list:
         """Creates crossovers using the _create_children method."""
         #there are different crossover methods, we need to test to see which gives best result
-        crossover = Crossover(self.crossover_method)
+        #crossover = Crossover(self.crossover_method)
+        crossover = self.crossover_manager
 
         children = []
         mid = len(survivors) // 2

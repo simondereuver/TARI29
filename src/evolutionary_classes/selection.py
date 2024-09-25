@@ -55,6 +55,28 @@ class Selection:
         survivors = sorted_population[:num_survivors] #cut off the rest from the sorted_popilation
         return survivors
 
+    def tournament(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float, tournament_size: int) -> np.ndarray:
+       
+        population_size = len(generation)
+        n_survive = max(1, int(population_size * survive_rate))  # Ensure at least one individual survives
+
+        survivors = []
+        for _ in range(n_survive):
+            # Randomly select individuals for the tournament
+            tournament_indices = random.sample(range(population_size), tournament_size)
+            
+            # Retrieve their fitness scores
+            tournament_fitness = fitness[tournament_indices]
+            
+            # Find the index of the individual with the best fitness (lowest score)
+            winner_idx_in_tournament = np.argmin(tournament_fitness)
+            winner_index = tournament_indices[winner_idx_in_tournament]
+            
+            # Append the winner to the survivors list
+            survivors.append(generation[winner_index])
+        
+        return np.array(survivors)
+
     # --- Optional Selection Methods ---
     #currently we compare two solutions, and pick the better one, to be a survivor
     #   Implement something like this instead of current survivors logic method:
