@@ -31,23 +31,10 @@ class Population:
         self.population_size_range = population_size_range
         self.crossover_method = crossover_method
 
-    def initial_population(self, graph: np.ndarray) -> list:
+    def initial_population(self, graph: np.ndarray, population_size: int) -> list:
         """Generate the initial population."""
         total_destinations = graph.shape[0]
         random_paths = []
-
-        #implement some logic based on number of nodes
-        #since it is n! we should probably have a max limit on this
-        #so we dont get too big of a population
-        min_size = self.population_size_range[0] * total_destinations
-        max_size = self.population_size_range[1] * total_destinations
-        population_size = random.randint(min_size, max_size)
-
-        #for _ in range(population_size):
-        #    random_path = list(range(1, total_destinations))
-        #    random.shuffle(random_path)
-        #    random_path = [0] + random_path
-        #    random_paths.append(random_path)
         
         random_paths = np.empty((population_size, total_destinations), dtype=int)
 
@@ -61,37 +48,49 @@ class Population:
 
         return random_paths
 
-    def crossovers(self, survivors: list) -> list:
-        """Creates crossovers using the _create_children method."""
-        #there are different crossover methods, we need to test to see which gives best result
+    def crossovers(self, survivors: np.ndarray) -> np.ndarray:
+        """Creates crossovers using the create_children method with numpy arrays."""
         crossover = Crossover(self.crossover_method)
 
-        children = []
-        mid = len(survivors) // 2
-        for i in range(mid):
-            parent_a, parent_b = survivors[i], survivors[i + mid]
-            children.append(crossover.create_children(parent_a, parent_b))
-            children.append(crossover.create_children(parent_b, parent_a)) # pylint: disable=arguments-out-of-order
-        return children
+        mid = survivors.shape[0] // 2
+        parents_a = survivors[:mid]
+        parents_b = survivors[mid:]
 
-    def mutate_population(self, generation: list) -> list:
-        """Mutates a small percentage of the population."""
-        #maybe should use the mutation percentage based on the size of population
-        #test different percentages
-        mutated_population = []
-        for path in generation:
+        # Initialize a list to store children
+        children_list = []
+        for parent_a, parent_b in zip(parents_a, parents_b):
+            child1 = crossover.create_children(parent_a, parent_b)
+            child2 = crossover.create_children(parent_b, parent_a)
+            children_list.extend([child1, child2])
+
+        # Convert the list of children to a numpy array
+        children = np.array(children_list)
+
+        return children.tolist()
+    
+    def mutate_population(self, generation: np.ndarray) -> np.ndarray:
+        """Mutates a small percentage of the population using numpy arrays."""
+
+        population_size, path_length = generation.shape
+
+        for i in range(population_size):
             if random.random() < self.mutation_rate:
-                index1, index2 = random.sample(range(1, len(path)), 2)
+
+                path = generation[i]
+                index1, index2 = random.sample(range(1, path_length), 2)
                 path[index1], path[index2] = path[index2], path[index1]
-            mutated_population.append(path)
-        return mutated_population
+
+                generation[i] = path
+
+        return generation
 
     def gen_new_population(self, curr_gen: np.ndarray, selection: Selection, fitness_scores: np.ndarray) -> list:
         """Generate a new population using selection, crossover, and mutation."""
         elites = selection.elitism(curr_gen, fitness_scores, 0.1)
-        elites = elites.tolist()
         selection_methods = [
-                                (selection.roulette_wheel_selection, 0.45)
+                                (selection.roulette_wheel_selection, 0.8),
+                                #(selection.rank_selection, 0.8)
+                                #(selection.stochastic_universal_sampling, 0.8)
                             ]
         survivors = np.empty((0, len(curr_gen[0])), dtype=int)
         #survivors = selection.stochastic_universal_sampling(curr_gen, fitness_scores)
@@ -99,8 +98,8 @@ class Population:
             selected = method(curr_gen, fitness_scores, survive_rate)
             survivors = np.concatenate((survivors, selected))
 
-        survivors = survivors.tolist()
-        children = self.crossovers(survivors)
-        combined_population = survivors + children + elites
+        children = self.crossovers(np.concatenate((survivors, elites)))
+        combined_population = np.concatenate((children, elites))
         new_population = self.mutate_population(combined_population)
+
         return new_population

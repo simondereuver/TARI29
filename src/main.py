@@ -1,13 +1,9 @@
 """main program code here"""
-# example code for generating random graphs
-from main_classes.graph import Graph
-#from evolutionary_classes.selection import Selection
-#from evolutionary_classes.fitness_function import FitnessFunction
-#from evolutionary_classes.population import Population
 
+from main_classes.graph import Graph
 from evolutionary_classes.tsp_gen_solver import TSPGeneticSolver
 
-NUMBER_OF_NODES = 10
+NUMBER_OF_NODES = 100
 EDGE_WEIGHT_SPAN = (10, 100)
 
 def main():
@@ -30,18 +26,15 @@ def main():
     solver = TSPGeneticSolver(
         graph,
         population_size_range=(100, 101),
-        mutation_rate=0.01,
+        mutation_rate=0.05,
         bounds=(lowerbound, None),
-        crossover_method="CX"
+        crossover_method="OX"
         )
 
-    best_path, best_distance = solver.run(generations=100)
+    best_path, best_distance = solver.run(generations=10000, population_size=100)
 
-    if best_path:
-        print(f"\nBest path found: {best_path} with distance: {best_distance}")
-        print(f"Score: {lowerbound / best_distance}")
-    else:
-        print("\nNo valid paths found.")
+    print(f"\nBest path found: {best_path} with distance: {best_distance}")
+    print(f"Score: {lowerbound / best_distance}")
 
 
 if __name__ == "__main__":

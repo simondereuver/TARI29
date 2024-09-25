@@ -3,6 +3,7 @@ Module containing crossover methods
 """
 
 import random
+import numpy as np
 
 class Crossover:
     """Class for generating children from parents"""
@@ -20,30 +21,29 @@ class Crossover:
 
         self.cross_over_method = cross_over_method
 
-    def order(self, parent_a: list, parent_b: list) -> list:
-        """Creates a child using Order Crossover (OX)."""
-        size = len(parent_a)
-        child = [None] * size
+    def order(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
+        """Creates a child using Order Crossover (OX) with numpy arrays."""
+        size = parent_a.shape[0]
+        child = np.full(size, -1, dtype=parent_a.dtype)
 
-        # Randomly select a subset
         start, end = sorted(random.sample(range(size), 2))
 
-        # Copy the subset from parent A to child
         child[start:end + 1] = parent_a[start:end + 1]
 
-        # Use a set for faster membership checks
         child_set = set(child[start:end + 1])
 
-        # Fill the remaining positions with genes from parent B in order
-        b_index = end + 1
-        c_index = end + 1
-        while None in child:
-            gene = parent_b[b_index % size]
+        b_index = (end + 1) % size
+        c_index = (end + 1) % size
+        filled_positions = np.count_nonzero(child != -1)
+
+        while filled_positions < size:
+            gene = parent_b[b_index]
             if gene not in child_set:
-                child[c_index % size] = gene
+                child[c_index] = gene
                 child_set.add(gene)
-                c_index += 1
-            b_index += 1
+                c_index = (c_index + 1) % size
+                filled_positions += 1
+            b_index = (b_index + 1) % size
 
         return child
 
