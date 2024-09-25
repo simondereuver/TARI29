@@ -20,7 +20,6 @@ class TSPGeneticSolver:
         self.graph = graph
 
         #self.population_manager = Population(mutation_rate, population_size_range, crossover_method)
-        
         if crossover_method == "SCX":
             self.population_manager = Population(mutation_rate, population_size_range, crossover_method, graph)
         else:

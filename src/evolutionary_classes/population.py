@@ -80,7 +80,7 @@ class Population:
             parent_a, parent_b = survivors[i], survivors[i + mid]
             children.append(crossover.create_children(parent_a, parent_b))
             children.append(
-                crossover.create_children(parent_b, parent_a)
+                crossover.create_children(parent_a, parent_b)
             )  # pylint: disable=arguments-out-of-order
         return children
 

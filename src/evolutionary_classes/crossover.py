@@ -180,8 +180,12 @@ class Crossover:
 
         return child
 
-    def _find_next_legitimate(self, current_node: int, parent: list, visited: set) -> int:
-        """Finds the next legitimate (not yet visited) node in the given parent tour after the current node."""
+    def _find_next_legitimate(
+            self, 
+            current_node: int, 
+            parent: list, 
+            visited: set) -> int:
+        
         size = len(parent)
         index = parent.index(current_node)
 

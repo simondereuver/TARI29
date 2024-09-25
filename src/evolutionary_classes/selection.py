@@ -15,7 +15,6 @@ class Selection:
         Initialize Selection class.
         """
         # Add attributes to __init__, such as selection style if needed
-        pass
 
     def distance(self, graph: np.ndarray, path: list) -> int:
         """Calculate the total distance of the given path in the graph."""
@@ -72,7 +71,8 @@ class Selection:
         Args:
             curr_generation (list): The current population.
             ff (FitnessFunction): The fitness function to evaluate individuals.
-            survive_rate (float, optional): The proportion of the population to survive. Defaults to 0.5.
+            survive_rate (float, optional): 
+            The proportion of the population to survive. Defaults to 0.5.
 
         Returns:
             list: The list of selected survivors.
@@ -110,7 +110,7 @@ class Selection:
             np.ndarray: The array of selected survivors.
         """
         population_size = len(generation)
-        n_survive = max(1, int(population_size * survive_rate))  # Ensure at least one individual survives
+        n_survive = max(1, int(population_size * survive_rate))
 
         survivors = []
         for _ in range(n_survive):
