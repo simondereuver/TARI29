@@ -4,19 +4,24 @@ Module containing crossover methods
 
 import random
 
+
 class Crossover:
     """Class for generating children from parents"""
+
     def __init__(self, cross_over_method="Simple", graph=None):
         """
         Initialize Crossover class.
 
         Args:
             cross_over_method (str): Method to use for crossover.
+            graph (optional): Graph data required for SCX method.
         """
 
         # Check if the cross_over_method is valid
         if cross_over_method not in ["Simple", "OX", "CX", "PMX", "SCX"]:
-            raise ValueError("Invalid cross_over_method. Choose from 'Simple', 'OX', 'CX', 'PMX', 'SCX'")
+            raise ValueError(
+                "Invalid cross_over_method. Choose from 'Simple', 'OX', 'CX', 'PMX', 'SCX'"
+            )
 
         self.cross_over_method = cross_over_method
 
@@ -54,12 +59,12 @@ class Crossover:
 
         return child
 
-    def cycle(self, parent_a :list, parent_b:list)-> list:
-        """Create a child using Cycle Crossover(CX)"""
-        size= len(parent_a)
-        child=[None]* size
-        indices=list(range(size))
-        cycle=0
+    def cycle(self, parent_a: list, parent_b: list) -> list:
+        """Create a child using Cycle Crossover (CX)."""
+        size = len(parent_a)
+        child = [None] * size
+        indices = list(range(size))
+        cycle = 0
         while None in child:
             if cycle % 2 == 0:
                 index = next(iter(indices))
@@ -79,7 +84,7 @@ class Crossover:
         return child
 
     def pmx(self, parent_a: list, parent_b: list) -> list:
-        """Creates a child using Partially Mapped Crossover (PMX)"""
+        """Creates a child using Partially Mapped Crossover (PMX)."""
         size = len(parent_a)
         child = [None] * size
 
@@ -130,8 +135,9 @@ class Crossover:
             else:
                 child.append(sub_path_b.pop(0))
         return child
-    
+
     def scx(self, parent_a: list, parent_b: list) -> list:
+        """Creates a child using Sequential Constructive Crossover (SCX)."""
         size = len(parent_a)
         child = []
         visited = set()
@@ -150,7 +156,7 @@ class Crossover:
 
             # If both are None, select a random unvisited node
             if next_a is None and next_b is None:
-                remaining_nodes = set(range(size)) - visited
+                remaining_nodes = set(parent_a) - visited
                 chosen_node = random.choice(list(remaining_nodes))
             else:
                 # Compare distances and choose the better edge
@@ -173,7 +179,7 @@ class Crossover:
             current_node = chosen_node
 
         return child
-    
+
     def _find_next_legitimate(self, current_node: int, parent: list, visited: set) -> int:
         """Finds the next legitimate (not yet visited) node in the given parent tour after the current node."""
         size = len(parent)
@@ -186,8 +192,16 @@ class Crossover:
         return None
 
     def create_children(self, parent_a: list, parent_b: list) -> list:
-        """Creates a child out of a pair of parents."""
+        """
+        Creates a child out of a pair of parents.
 
+        Args:
+            parent_a (list): The first parent.
+            parent_b (list): The second parent.
+
+        Returns:
+            list: The generated child.
+        """
         switcher = {
             "Simple": self.simple,
             "OX": self.order,
