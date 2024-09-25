@@ -1,4 +1,3 @@
-# population.py
 """
 Module containing population-based search
 """
@@ -9,24 +8,37 @@ from evolutionary_classes.crossover import Crossover
 from evolutionary_classes.selection import Selection
 from evolutionary_classes.fitness_function import FitnessFunction
 
+
 class Population:
     """Class for generating and modifying the population"""
-    def __init__(self, mutation_rate=0.01, population_size_range=(10, 50), crossover_method="OX"):
+
+    def __init__(
+        self,
+        mutation_rate=0.01,
+        population_size_range=(10, 50),
+        crossover_method="OX",
+        graph=None
+    ):
         """
         Initialize Population class.
-        
+
         Args:
             mutation_rate (float): Probability of mutation (0 <= mutation_rate <= 1).
             population_size_range (tuple): Range for the initial population size.
+            crossover_method (str): Method to use for crossover.
+            graph (optional): Graph data required for SCX method.
         """
-        #maybe should use the mutation range based on the size of population
+        # Maybe should use the mutation range based on the size of population
         if not 0 <= mutation_rate <= 1:
             raise ValueError("mutation_rate must be between 0 and 1")
         if not (isinstance(population_size_range, tuple) and len(population_size_range) == 2):
             raise ValueError("population_size_range must be a tuple with two values")
         if population_size_range[0] >= population_size_range[1]:
-            raise ValueError("population_size_range must be a tuple (min, max) where min < max")
+            raise ValueError(
+                "population_size_range must be a tuple (min, max) where min < max"
+            )
 
+        self.graph = graph
         self.mutation_rate = mutation_rate
         self.population_size_range = population_size_range
         self.crossover_method = crossover_method
@@ -35,8 +47,7 @@ class Population:
         """Generate the initial population."""
         total_destinations = graph.shape[0]
         random_paths = []
-        
-        random_paths = np.empty((population_size, total_destinations), dtype=int)
+
 
         for i in range(population_size):
             path = list(range(1, total_destinations))

@@ -1,13 +1,15 @@
-# selection.py
 """
 Module containing selection, solutions are selected based on their fitness to produce offspring
 """
 import math
+import random
 import numpy as np
 from evolutionary_classes.fitness_function import FitnessFunction
 
+
 class Selection:
     """A class to choose the survivors of a generation"""
+
     def __init__(self):
         """Initialize Selection class"""
 
@@ -37,6 +39,48 @@ class Selection:
         elites = generation[elite_indices]
 
         return elites
+
+    def tournament(
+        self,
+        generation: np.ndarray,
+        fitness: np.ndarray,
+        survive_rate: float,
+        tournament_size: int
+    ) -> np.ndarray:
+        """
+        Selects survivors using tournament selection.
+
+        For each survivor to be selected, a subset of the population is chosen randomly,
+        and the individual with the best fitness in the subset is selected as a survivor.
+
+        Args:
+            generation (np.ndarray): The current population.
+            fitness (np.ndarray): The fitness scores corresponding to the population.
+            survive_rate (float): The proportion of the population to survive.
+            tournament_size (int): The number of individuals competing in each tournament.
+
+        Returns:
+            np.ndarray: The array of selected survivors.
+        """
+        population_size = len(generation)
+        n_survive = max(1, int(population_size * survive_rate))
+
+        survivors = []
+        for _ in range(n_survive):
+            # Randomly select individuals for the tournament
+            tournament_indices = random.sample(range(population_size), tournament_size)
+
+            # Retrieve their fitness scores
+            tournament_fitness = fitness[tournament_indices]
+
+            # Find the index of the individual with the best fitness (lowest score)
+            winner_idx_in_tournament = np.argmin(tournament_fitness)
+            winner_index = tournament_indices[winner_idx_in_tournament]
+
+            # Append the winner to the survivors list
+            survivors.append(generation[winner_index])
+
+        return np.array(survivors)
 
     # --- Optional Selection Methods ---
     #currently we compare two solutions, and pick the better one, to be a survivor

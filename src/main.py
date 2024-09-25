@@ -22,20 +22,22 @@ def main():
     print(f"Lowerbound: {lowerbound}")
     #g.show_graph(graph)
 
-    #create dictionary to set parameters instead
-    solver = TSPGeneticSolver(
-        graph,
-        population_size_range=(100, 101),
-        mutation_rate=0.05,
-        bounds=(lowerbound, None),
-        crossover_method="OX"
-        )
+    crossover_methods = ["SCX", "OX", "CX", "PMX", "Simple"]
 
-    best_path, best_distance = solver.run(generations=10000, population_size=100)
+    for method in crossover_methods:
+        print(f"\nTesting crossover method: {method}")
+        solver = TSPGeneticSolver(
+            graph,
+            population_size_range=(10, 50),
+            mutation_rate=0.01,
+            bounds=(lowerbound, None),
+            crossover_method=method
+            )
+
+    best_path, best_distance = solver.run(generations=200, population_size=100)
 
     print(f"\nBest path found: {best_path} with distance: {best_distance}")
     print(f"Score: {lowerbound / best_distance}")
-
 
 if __name__ == "__main__":
     main()

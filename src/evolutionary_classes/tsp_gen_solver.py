@@ -20,7 +20,13 @@ class TSPGeneticSolver:
         """
         # pylint: disable=too-few-public-methods
         self.graph = graph
-        self.population_manager = Population(mutation_rate, population_size_range, crossover_method)
+
+        #self.population_manager = Population(mutation_rate, population_size_range, crossover_method)
+        if crossover_method == "SCX":
+            self.population_manager = Population(mutation_rate, population_size_range, crossover_method, graph)
+        else:
+            self.population_manager = Population(mutation_rate, population_size_range, crossover_method)
+
         self.selection_manager = Selection()
         self.ff = FitnessFunction(graph, bounds)
 
