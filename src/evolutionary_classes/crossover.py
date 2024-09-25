@@ -181,9 +181,9 @@ class Crossover:
         return child
 
     def _find_next_legitimate(
-            self, 
-            current_node: int, 
-            parent: list, 
+            self,
+            current_node: int,
+            parent: list,
             visited: set) -> int:
         
         size = len(parent)
