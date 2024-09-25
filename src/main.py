@@ -25,21 +25,22 @@ print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {low
 
 #g.show_graph(graph)
 
-#create dictionary to set parameters instead
-solver = TSPGeneticSolver(
-    graph,
-    population_size_range=(10, 50),
-    mutation_rate=0.01,
-    bounds=(lowerbound1, None),
-    crossover_method="CX"
+crossover_methods = ["SCX", "OX", "CX", "PMX", "Simple"]
+
+for method in crossover_methods:
+    print(f"\nTesting crossover method: {method}")
+    solver = TSPGeneticSolver(
+        graph,
+        population_size_range=(10, 50),
+        mutation_rate=0.01,
+        bounds=(lowerbound1, None),
+        crossover_method=method
     )
-
-best_path, best_distance = solver.run(generations=200)
-
-if best_path:
-    print(f"\nBest path found: {best_path} with distance: {best_distance}")
-else:
-    print("\nNo valid paths found.")
+    best_path, best_distance = solver.run(generations=200)
+    if best_path:
+        print(f"Best path found: {best_path} with distance: {best_distance}")
+    else:
+        print("No valid paths found.")
 
 #Example usage to run the 1-tree on 10 different graphs
 #for i in range(10):
