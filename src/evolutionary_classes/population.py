@@ -6,8 +6,6 @@ import random
 import numpy as np
 from evolutionary_classes.crossover import Crossover
 from evolutionary_classes.selection import Selection
-from evolutionary_classes.fitness_function import FitnessFunction
-
 
 class Population:
     """Class for generating and modifying the population"""

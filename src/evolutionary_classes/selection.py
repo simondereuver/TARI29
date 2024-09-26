@@ -3,7 +3,6 @@
 import math
 import random
 import numpy as np
-from evolutionary_classes.fitness_function import FitnessFunction
 
 
 class Selection:

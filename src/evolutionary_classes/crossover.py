@@ -1,5 +1,5 @@
 """Module containing crossover methods"""
-# pylint: disable=too-many-arguments,line-too-long
+# pylint: disable=too-many-arguments,line-too-long,too-many-function-args
 
 import random
 import numpy as np
