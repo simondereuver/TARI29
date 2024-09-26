@@ -7,6 +7,7 @@ NUMBER_OF_NODES = 100
 EDGE_WEIGHT_SPAN = (10, 100)
 
 def main():
+    """Main program execution"""
     g = Graph(NUMBER_OF_NODES, EDGE_WEIGHT_SPAN)
 
     graph = g.generate_random_graph(seed=1)
@@ -22,7 +23,7 @@ def main():
     print(f"Lowerbound: {lowerbound}")
     #g.show_graph(graph)
 
-    crossover_methods = ["OX"]#["SCX", "OX", "CX", "PMX", "Simple"]
+    crossover_methods = ["SCX", "OX", "CX", "PMX", "Simple"]
 
     for method in crossover_methods:
         print(f"\nTesting crossover method: {method}")
@@ -34,10 +35,10 @@ def main():
             crossover_method=method
             )
 
-    best_path, best_distance = solver.run(generations=100, population_size=100)
+        best_path, best_distance = solver.run(generations=100, population_size=100)
 
-    print(f"\nBest path found: {best_path} with distance: {best_distance}")
-    print(f"Score: {lowerbound / best_distance}")
+        print(f"\nBest path found: {best_path} with distance: {best_distance}")
+        print(f"Score: {lowerbound / best_distance}")
 
 if __name__ == "__main__":
     main()
@@ -53,5 +54,3 @@ if __name__ == "__main__":
 #    lowerbound1 = g.max_one_tree_lower_bound(graph)
 
 #    print(f"Shortest path: {shortest_path}, {weight} meters, Lowerbound_1_tree: {lowerbound1}")
-
-

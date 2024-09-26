@@ -1,6 +1,5 @@
-"""
-Module containing selection, solutions are selected based on their fitness to produce offspring
-"""
+"""Module containing selection"""
+# pylint: disable=too-many-arguments,line-too-long
 import math
 import random
 import numpy as np
@@ -45,7 +44,7 @@ class Selection:
         generation: np.ndarray,
         fitness: np.ndarray,
         survive_rate: float,
-        tournament_size: int
+        tournament_size: int = 2
     ) -> np.ndarray:
         """
         Selects survivors using tournament selection.

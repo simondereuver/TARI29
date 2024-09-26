@@ -1,6 +1,5 @@
-"""
-Module containing crossover methods
-"""
+"""Module containing crossover methods"""
+# pylint: disable=too-many-arguments,line-too-long
 
 import random
 import numpy as np
@@ -58,50 +57,41 @@ class Crossover:
 
         return child
 
-    def cycle(self, parent_a: list, parent_b: list) -> list:
-        """Create a child using Cycle Crossover (CX)."""
+    def cycle(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
+        """Create a child using Cycle Crossover (CX) with NumPy."""
         size = len(parent_a)
-        child = [None] * size
-        indices = list(range(size))
+        child = np.full(size, None)
+        indices = np.arange(size)
         cycle = 0
+
         while None in child:
             if cycle % 2 == 0:
-                index = next(iter(indices))
+                index = indices[0]
                 start_gene = parent_a[index]
                 while True:
                     child[index] = parent_a[index]
-                    indices.remove(index)
-                    index = parent_a.index(parent_b[index])
+                    indices = indices[indices != index]
+                    index = np.where(parent_a == parent_b[index])[0][0]
                     if parent_a[index] == start_gene:
                         break
             else:
-                for index in indices:
-                    child[index] = parent_b[index]
-                indices.clear()
+                child[indices] = parent_b[indices]
+                indices = np.array([])
             cycle += 1
 
         return child
 
-    def pmx(self, parent_a: list, parent_b: list) -> list:
+    def pmx(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
         """Creates a child using Partially Mapped Crossover (PMX)."""
         size = len(parent_a)
-        child = [None] * size
+        child = np.full(size, None)
 
-        # Randomly select a subset
         start, end = sorted(random.sample(range(size), 2))
-
-        # Copy the subset from parent A to child
         child[start:end + 1] = parent_a[start:end + 1]
 
-        # Mapping from parent B to parent A
-        mapping = {}
-        for i in range(start, end + 1):
-            mapping[parent_b[i]] = parent_a[i]
-
-        # Track used genes
+        mapping = {parent_b[i]: parent_a[i] for i in range(start, end + 1)}
         used_genes = set(child[start:end + 1])
 
-        # Fill the remaining positions
         for i in range(size):
             if child[i] is None:
                 gene = parent_b[i]
@@ -109,34 +99,35 @@ class Crossover:
                 while gene in mapping and gene not in visited:
                     visited.add(gene)
                     gene = mapping[gene]
-                # Ensure the gene is not already used
                 if gene in used_genes:
-                    for g in parent_b:
-                        if g not in used_genes:
-                            gene = g
-                            break
+                    gene = next(g for g in parent_b if g not in used_genes)
                 child[i] = gene
                 used_genes.add(gene)
 
         return child
 
-    def simple(self, parent_a: list, parent_b: list) -> list:
+    def simple(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
         """Creates a child out of a pair of parents."""
 
-        child = []
-        start = random.randint(0, len(parent_a) - 1)
-        end = random.randint(start, len(parent_a))
+        size = len(parent_a)
+        child = np.empty(size, dtype=parent_a.dtype)
+
+        start = random.randint(0, size - 1)
+        end = random.randint(start, size)
+
         sub_path_a = parent_a[start:end]
-        sub_path_b = [item for item in parent_b if item not in sub_path_a]
-        for i in range(len(parent_a)):
-            if start <= i < end:
-                child.append(sub_path_a.pop(0))
-            else:
-                child.append(sub_path_b.pop(0))
+        sub_path_b = np.setdiff1d(parent_b, sub_path_a, assume_unique=True)
+
+        child[start:end] = sub_path_a
+        child[:start] = sub_path_b[:start]
+        child[end:] = sub_path_b[start:]
+
         return child
 
-    def scx1(self, parent_a: list, parent_b: list) -> list:
+    def scx(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
         """Creates a child using Sequential Constructive Crossover (SCX)."""
+        parent_a = parent_a.tolist()
+        parent_b = parent_b.tolist()
         size = len(parent_a)
         child = []
         visited = set()
@@ -148,10 +139,10 @@ class Crossover:
 
         while len(child) < size:
             # Find the next legitimate node from parent_a
-            next_a = self._find_next_legitimate1(current_node, parent_a, visited)
+            next_a = self._find_next_legitimate(current_node, parent_a, visited)
 
             # Find the next legitimate node from parent_b
-            next_b = self._find_next_legitimate1(current_node, parent_b, visited)
+            next_b = self._find_next_legitimate(current_node, parent_b, visited)
 
             # If both are None, select a random unvisited node
             if next_a is None and next_b is None:
@@ -177,9 +168,23 @@ class Crossover:
             visited.add(chosen_node)
             current_node = chosen_node
 
-        return child
+        return np.array([child])
 
-    def scx(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
+    def _find_next_legitimate(
+            self,
+            current_node: int,
+            parent: list,
+            visited:set)->int:
+        size = len(parent)
+        index = parent.index(current_node)
+
+        for i in range(1, size):
+            candidate = parent[(index + i) % size]
+            if candidate not in visited:
+                return candidate
+        return None
+
+    def scx1(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
         """Creates a child using Sequential Constructive Crossover (SCX) with NumPy arrays."""
         size = parent_a.shape[0]
         child = np.empty(size, dtype=parent_a.dtype)
@@ -233,21 +238,7 @@ class Crossover:
 
         return child
 
-    def _find_next_legitimate1(
-            self,
-            current_node: int,
-            parent: list,
-            visited:set)->int:
-        size = len(parent)
-        index = parent.index(current_node)
-
-        for i in range(1, size):
-            candidate = parent[(index + i) % size]
-            if candidate not in visited:
-                return candidate
-        return None
-
-    def _find_next_legitimate(self, current_node: int, parent: np.ndarray, visited: np.ndarray, positions: np.ndarray) -> int:
+    def _find_next_legitimate1(self, current_node: int, parent: np.ndarray, visited: np.ndarray, positions: np.ndarray) -> int:
         size = parent.shape[0]
         index = positions[current_node]
 
@@ -265,7 +256,104 @@ class Crossover:
         else:
             return None
 
-    def create_children(self, parent_a: list, parent_b: list) -> list:
+
+    def scx2(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
+        """Creates a child using Sequential Constructive Crossover (SCX) with optimized performance."""
+        size = parent_a.shape[0]
+        child = np.empty(size, dtype=parent_a.dtype)
+
+        # Create mappings from city indices to their positions in parents
+        positions_a = np.empty(size, dtype=int)
+        positions_a[parent_a] = np.arange(size)
+
+        positions_b = np.empty(size, dtype=int)
+        positions_b[parent_b] = np.arange(size)
+
+        # Initialize unvisited nodes tracking
+        unvisited_nodes = np.arange(size)
+        node_positions = np.arange(size)
+        num_unvisited = size
+
+        # Start with the first node of parent_a
+        current_node = parent_a[0]
+        child[0] = current_node
+
+        # Remove current_node from unvisited_nodes
+        index = node_positions[current_node]
+        last_unvisited_node = unvisited_nodes[num_unvisited - 1]
+
+        unvisited_nodes[index], unvisited_nodes[num_unvisited - 1] = (
+            unvisited_nodes[num_unvisited - 1],
+            unvisited_nodes[index],
+        )
+
+        node_positions[last_unvisited_node] = index
+        node_positions[current_node] = num_unvisited - 1
+
+        num_unvisited -= 1
+        position = 1  # Next position to fill in child
+
+        while position < size:
+            # Find the next legitimate node from parent_a
+            next_a = self._find_next_legitimate(
+                current_node, parent_a, node_positions, num_unvisited, positions_a
+            )
+
+            # Find the next legitimate node from parent_b
+            next_b = self._find_next_legitimate(
+                current_node, parent_b, node_positions, num_unvisited, positions_b
+            )
+
+            # If both are None, select a random unvisited node
+            if next_a is None and next_b is None:
+                chosen_node = np.random.choice(unvisited_nodes[:num_unvisited])
+            else:
+                # Compare distances and choose the better edge
+                if next_a is None:
+                    chosen_node = next_b
+                elif next_b is None:
+                    chosen_node = next_a
+                else:
+                    distance_a = self.distance_matrix[current_node, next_a]
+                    distance_b = self.distance_matrix[current_node, next_b]
+
+                    chosen_node = next_a if distance_a < distance_b else next_b
+
+            # Add the chosen node to the child
+            child[position] = chosen_node
+
+            # Remove chosen_node from unvisited_nodes
+            index = node_positions[chosen_node]
+            last_unvisited_node = unvisited_nodes[num_unvisited - 1]
+
+            unvisited_nodes[index], unvisited_nodes[num_unvisited - 1] = (
+                unvisited_nodes[num_unvisited - 1],
+                unvisited_nodes[index],
+            )
+
+            node_positions[last_unvisited_node] = index
+            node_positions[chosen_node] = num_unvisited - 1
+
+            num_unvisited -= 1
+            current_node = chosen_node
+            position += 1
+
+        return child
+
+    def _find_next_legitimate2(self, current_node: int, parent: np.ndarray, node_positions: np.ndarray, num_unvisited: int, positions: np.ndarray) -> int:
+        size = parent.shape[0]
+        index = positions[current_node]
+
+        # Loop through the parent starting from the current node's position
+        for i in range(1, size):
+            candidate_index = (index + i) % size
+            candidate_city = parent[candidate_index]
+            if node_positions[candidate_city] < num_unvisited:
+                return candidate_city
+        return None
+
+
+    def create_children(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
         """
         Creates a child out of a pair of parents.
 

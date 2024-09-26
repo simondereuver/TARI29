@@ -1,7 +1,7 @@
 """
 Module containing population-based search
 """
-
+# pylint: disable=too-many-arguments,line-too-long
 import random
 import numpy as np
 from evolutionary_classes.crossover import Crossover
@@ -46,7 +46,7 @@ class Population:
     def initial_population(self, graph: np.ndarray, population_size: int) -> np.ndarray:
         """Generate the initial population."""
         total_destinations = graph.shape[0]
-        
+
         random_paths = np.empty((population_size, total_destinations), dtype=int)
 
         for i in range(population_size):
@@ -59,26 +59,6 @@ class Population:
 
         return random_paths
 
-    def crossovers1(self, survivors: np.ndarray) -> np.ndarray:
-        """Creates crossovers using the create_children method with numpy arrays."""
-        crossover = Crossover(self.crossover_method)
-
-        mid = survivors.shape[0] // 2
-        parents_a = survivors[:mid]
-        parents_b = survivors[mid:]
-
-        # Initialize a list to store children
-        children_list = []
-        for parent_a, parent_b in zip(parents_a, parents_b):
-            child1 = crossover.create_children(parent_a, parent_b)
-            child2 = crossover.create_children(parent_b, parent_a)
-            children_list.extend([child1, child2])
-
-        # Convert the list of children to a numpy array
-        children = np.array(children_list)
-
-        return children
-
     def crossovers(self, survivors: np.ndarray) -> np.ndarray:
         """Creates crossovers using NumPy arrays."""
         crossover = Crossover(self.crossover_method, self.graph)
@@ -90,7 +70,6 @@ class Population:
         num_children = 2 * mid
         num_genes = survivors.shape[1]
 
-        # Preallocate the children array
         children = np.empty((num_children, num_genes), dtype=survivors.dtype)
 
         for idx, (parent_a, parent_b) in enumerate(zip(parents_a, parents_b)):
@@ -122,6 +101,7 @@ class Population:
         elites = selection.elitism(curr_gen, fitness_scores, 0.1)
         selection_methods = [
                                 (selection.roulette_wheel_selection, 0.8),
+                                #(selection.tournament, 0.4),
                                 #(selection.rank_selection, 0.05),
                                 #(selection.stochastic_universal_sampling, 0.8)
                             ]
