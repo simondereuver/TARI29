@@ -22,19 +22,19 @@ def main():
     print(f"Lowerbound: {lowerbound}")
     #g.show_graph(graph)
 
-    crossover_methods = ["SCX", "OX", "CX", "PMX", "Simple"]
+    crossover_methods = ["OX"]#["SCX", "OX", "CX", "PMX", "Simple"]
 
     for method in crossover_methods:
         print(f"\nTesting crossover method: {method}")
         solver = TSPGeneticSolver(
             graph,
             population_size_range=(10, 50),
-            mutation_rate=0.01,
+            mutation_rate=0.02,
             bounds=(lowerbound, None),
             crossover_method=method
             )
 
-    best_path, best_distance = solver.run(generations=200, population_size=100)
+    best_path, best_distance = solver.run(generations=100, population_size=100)
 
     print(f"\nBest path found: {best_path} with distance: {best_distance}")
     print(f"Score: {lowerbound / best_distance}")

@@ -13,7 +13,7 @@ from evolutionary_classes.population import Population
 class TSPGeneticSolver:
     """Combines the other classes to genetically solve TSP"""
 
-    # pylint: disable=too-many-arguments,line-too-long,too-many-positional-arguments
+    # pylint: disable=too-many-arguments,line-too-long
     def __init__(self, graph: np.ndarray, population_size_range=(10, 50), mutation_rate=0.01, bounds=None, crossover_method: str = "Simple"):
         """
         Initialize the GeneticAlgorithmSolver.
@@ -59,7 +59,7 @@ class TSPGeneticSolver:
                 best_path = current_generation[index]
 
             progress_bar.update(1)
-            progress_bar.set_postfix_str(f'fitness={np.max(fitness_scores):.4f}')
+            progress_bar.set_postfix_str(f'fitness={np.max(fitness_scores):.3f}, Best={calculate_distance(self.graph, best_path)}')
 
         if not np.any(current_generation):
             print("\nNo valid paths found in the final generation.")

@@ -25,11 +25,6 @@ class Crossover:
 
         self.cross_over_method = cross_over_method
 
-    def order(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
-        """Creates a child using Order Crossover (OX) with numpy arrays."""
-        size = parent_a.shape[0]
-        child = np.full(size, -1, dtype=parent_a.dtype)
-
         if cross_over_method == "SCX":
             if graph is None:
                 raise ValueError("Graph must be provided for SCX crossover method.")
@@ -37,12 +32,11 @@ class Crossover:
         else:
             self.distance_matrix = None
 
-    def order(self, parent_a: list, parent_b: list) -> list:
-        """Creates a child using Order Crossover (OX)."""
-        size = len(parent_a)
-        child = [None] * size
+    def order(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
+        """Creates a child using Order Crossover (OX) with numpy arrays."""
+        size = parent_a.shape[0]
+        child = np.full(size, -1, dtype=parent_a.dtype)
 
-        # Randomly select a subset
         start, end = sorted(random.sample(range(size), 2))
 
         child[start:end + 1] = parent_a[start:end + 1]
@@ -141,7 +135,7 @@ class Crossover:
                 child.append(sub_path_b.pop(0))
         return child
 
-    def scx(self, parent_a: list, parent_b: list) -> list:
+    def scx1(self, parent_a: list, parent_b: list) -> list:
         """Creates a child using Sequential Constructive Crossover (SCX)."""
         size = len(parent_a)
         child = []
@@ -154,10 +148,10 @@ class Crossover:
 
         while len(child) < size:
             # Find the next legitimate node from parent_a
-            next_a = self._find_next_legitimate(current_node, parent_a, visited)
+            next_a = self._find_next_legitimate1(current_node, parent_a, visited)
 
             # Find the next legitimate node from parent_b
-            next_b = self._find_next_legitimate(current_node, parent_b, visited)
+            next_b = self._find_next_legitimate1(current_node, parent_b, visited)
 
             # If both are None, select a random unvisited node
             if next_a is None and next_b is None:
@@ -185,7 +179,61 @@ class Crossover:
 
         return child
 
-    def _find_next_legitimate(
+    def scx(self, parent_a: np.ndarray, parent_b: np.ndarray) -> np.ndarray:
+        """Creates a child using Sequential Constructive Crossover (SCX) with NumPy arrays."""
+        size = parent_a.shape[0]
+        child = np.empty(size, dtype=parent_a.dtype)
+        visited = np.zeros(size, dtype=bool)  # Assuming city indices range from 0 to size - 1
+
+        # Create mappings from city indices to their positions in parents
+        positions_a = np.empty(size, dtype=int)
+        positions_a[parent_a] = np.arange(size)
+
+        positions_b = np.empty(size, dtype=int)
+        positions_b[parent_b] = np.arange(size)
+
+        # Start with the first node of parent_a
+        current_node = parent_a[0]
+        child[0] = current_node
+        visited[current_node] = True
+
+        position = 1  # Next position to fill in child
+
+        while position < size:
+            # Find the next legitimate node from parent_a
+            next_a = self._find_next_legitimate(current_node, parent_a, visited, positions_a)
+
+            # Find the next legitimate node from parent_b
+            next_b = self._find_next_legitimate(current_node, parent_b, visited, positions_b)
+
+            # If both are None, select a random unvisited node
+            if next_a is None and next_b is None:
+                remaining_nodes = np.where(~visited)[0]
+                chosen_node = np.random.choice(remaining_nodes)
+            else:
+                # Compare distances and choose the better edge
+                if next_a is None:
+                    chosen_node = next_b
+                elif next_b is None:
+                    chosen_node = next_a
+                else:
+                    distance_a = self.distance_matrix[current_node, next_a]
+                    distance_b = self.distance_matrix[current_node, next_b]
+
+                    if distance_a < distance_b:
+                        chosen_node = next_a
+                    else:
+                        chosen_node = next_b
+
+            # Add the chosen node to the child
+            child[position] = chosen_node
+            visited[chosen_node] = True
+            current_node = chosen_node
+            position += 1
+
+        return child
+
+    def _find_next_legitimate1(
             self,
             current_node: int,
             parent: list,
@@ -198,6 +246,24 @@ class Crossover:
             if candidate not in visited:
                 return candidate
         return None
+
+    def _find_next_legitimate(self, current_node: int, parent: np.ndarray, visited: np.ndarray, positions: np.ndarray) -> int:
+        size = parent.shape[0]
+        index = positions[current_node]
+
+        # Generate candidate indices in the parent, wrapping around using modulo
+        candidate_indices = (index + np.arange(1, size)) % size
+        candidate_cities = parent[candidate_indices]
+
+        # Find the first unvisited candidate
+        unvisited_mask = ~visited[candidate_cities]
+
+        if np.any(unvisited_mask):
+            # Return the first unvisited candidate
+            first_unvisited_city = candidate_cities[np.argmax(unvisited_mask)]
+            return first_unvisited_city
+        else:
+            return None
 
     def create_children(self, parent_a: list, parent_b: list) -> list:
         """

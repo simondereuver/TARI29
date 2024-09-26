@@ -18,11 +18,10 @@ def calculate_distance(graph: np.ndarray, path: np.ndarray) -> int:
 def eval_fitness(graph: np.ndarray, path: np.array, bounds: tuple) -> float:
     return bounds[0] / calculate_distance(graph, path)
 
-def compute_fitness_scores(graph: np.ndarray, generation: list, bounds: tuple) -> np.ndarray:
+def compute_fitness_scores(graph: np.ndarray, generation: np.ndarray, bounds: tuple) -> np.ndarray:
     """Compute all fitness scores for an entire generation"""
-    gen = np.array(generation)
 
-    fitness_scores = np.array([eval_fitness(graph, p, bounds) for p in gen])
+    fitness_scores = np.array([eval_fitness(graph, p, bounds) for p in generation])
 
     #with Pool() as pool:
     #    fitness_scores = np.array(pool.starmap(eval_fitness, [(graph, p, bounds) for p in gen]))
