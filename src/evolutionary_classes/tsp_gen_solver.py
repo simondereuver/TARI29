@@ -28,7 +28,8 @@ class TSPGeneticSolver:
 
     def preprocess_graph(self) -> tuple[dict, dict]:
         """
-        Analyzes the graph gathering and returning statistics and recommended selection and crossover methods and mutation rate.
+        Analyzes the graph gathering and returning statistics and recommends selection
+        and crossover methods and mutation rate.
         
         Parameters:
         - non (uses the graph assigned to the class)
@@ -36,14 +37,7 @@ class TSPGeneticSolver:
         Returns:
         - methods: a tuple of dicts containing statistics about the graph and recommended choices.
         """
-        """
-        mean = statistics['mean']
-        median = statistics['median']
-        std_dev = statistics['std_dev']
-        min_val = statistics['min']
-        max_val = statistics['max']
-        #variance = statistics['variance']
-        """
+
         upper_triangle = self.graph[np.triu_indices_from(self.graph, k=1)]
         min_val = np.min(upper_triangle)
         max_val = np.max(upper_triangle)
@@ -52,15 +46,12 @@ class TSPGeneticSolver:
         std_dev = np.std(upper_triangle)
         num_edges = np.size(upper_triangle)
 
-        #calculate skewness, if its positive normal dist is shifted to right
-        #https://study.com/academy/lesson/skewness-in-statistics-definition-formula-example.html
+        #calculate skewness, if its positive normal dist is shifted to right and vice versa
         skewness = (3 * (mean - median)) / std_dev if std_dev != 0 else 0
         skewness_percentage = skewness / std_dev * 100
-        #https://en.wikipedia.org/wiki/Coefficient_of_variation
 
         #standard deviation is x% of the mean => cv = x
         cv = (std_dev / mean) * 100 if mean != 0 else 0
-
 
         range_ratio = ((max_val - min_val) / mean) * 100 if mean != 0 else 0
 
@@ -74,34 +65,59 @@ class TSPGeneticSolver:
 
         relative_iqr = (iqr / mean) * 100 if mean != 0 else 0
 
-        # Define thresholds
+        #define the thresholds
         skewness_threshold = 10  # You might adjust this based on your data
         cv_threshold = relative_iqr #the relative iqr tells us if we have a high variability or not
         low_range_threshold = ((q1 - min_val) / mean) * 100 if mean != 0 else 0
         high_range_threshold = ((max_val - q3) / mean) * 100 if mean != 0 else 0
 
-        #in relation to the mean
-        if skewness_percentage > skewness_threshold:
-            recommendations["selection"] = "Tournament Selection" #more higher edge weights
-        elif skewness_percentage < -skewness_threshold:
-            recommendations["selection"] = "Elitism" #more lower edge weights
-        else:
-            recommendations["selection"] = "Roulette Wheel Selection" #many values close to median
+        #in relation to the mean adjust selection method based on skewness
+        if skewness_percentage > skewness_threshold: #more higher edge weights
+            #easier to get stuck in local optimum
+            recommendations["selection"] = {
+            "method": "Tournament Selection",
+            "parameters": {"tournament_size": 5}
+            }
+            recommendations["elitism_rate"] = 0.1
+        elif skewness_percentage < -skewness_threshold: #more lower edge weights
+            #focus on lower solutions
+            recommendations["selection"] = {
+            "method": "Rank Selection",
+            "parameters": {}
+            }
+            recommendations["elitism_rate"] = 0.2
+        else: #many edges with weights close to median
+            recommendations["selection"] = {
+            "method": "Roulette Wheel Selection",
+            "parameters": {}
+            }
+            recommendations["elitism_rate"] = 0.15
 
-        # Adjust crossover method based on CV
-        if cv > cv_threshold:
-            recommendations["crossover"] = "Uniform Crossover"
+        #adjust crossover method based on CV
+        if cv > cv_threshold: #indicates cv>iqr possible outliers or a long tail
+            #high variablity
+            if skewness_percentage > skewness_threshold:
+                recommendations["crossover"] = "SCX" #scx is good since it chooses min edge weight
+            else:
+                recommendations["crossover"] = "PMX"
+            #recommendations["crossover"] = "SCX"
         else:
-            recommendations["crossover"] = "One-point Crossover"
+            #low variability
+            if skewness_percentage < -skewness_threshold:
+                recommendations["crossover"] = "CX"
+            else:
+                recommendations["crossover"] = "OX"
+            #recommendations["crossover"] = "OX"
 
-        # Adjust mutation rate based on range ratio
+        #adjust mutation rate based on range ratio
         if range_ratio > high_range_threshold:
-            recommendations["mutation_rate"] = 0.05  # High mutation rate
+            recommendations["mutation_rate"] = 0.05  #high mutation rate
         elif range_ratio < low_range_threshold:
-            recommendations["mutation_rate"] = 0.01  # Low mutation rate
+            recommendations["mutation_rate"] = 0.01  #low mutation rate
         else:
-            recommendations["mutation_rate"] = 0.02  # Medium mutation rate
+            recommendations["mutation_rate"] = 0.02  #medium mutation rate
 
+        #tailor made genetic algorithm for a grahp
         statistics = {
         "min": min_val,
         "max": max_val,
