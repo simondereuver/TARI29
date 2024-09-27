@@ -1,98 +1,49 @@
-"""
-Module containing selection, solutions are selected based on their fitness to produce offspring
-"""
-
+"""Module containing selection"""
+# pylint: disable=too-many-arguments,line-too-long
+import math
 import random
 import numpy as np
-from evolutionary_classes.fitness_function import FitnessFunction
 
 
 class Selection:
     """A class to choose the survivors of a generation"""
 
     def __init__(self):
-        """
-        Initialize Selection class.
-        """
-        # Add attributes to __init__, such as selection style if needed
+        """Initialize Selection class"""
 
-    def distance(self, graph: np.ndarray, path: list) -> int:
-        """Calculate the total distance of the given path in the graph."""
-        total_distance = 0
-        for i in range(len(path) - 1):
-            total_distance += graph[path[i]][path[i + 1]]
-        total_distance += graph[path[-1]][path[0]]
-
-        return total_distance
-
-    def survivors(self, curr_generation: list, ff: FitnessFunction) -> list:
-        """
-        Select half of the population based on the fitness function.
-
-        This method shuffles the current generation, splits it into two halves,
-        and selects the fitter individual from each pair to survive to the next generation.
-
-        Args:
-            curr_generation (list): The current population.
-            ff (FitnessFunction): The fitness function to evaluate individuals.
-
-        Returns:
-            list: The list of selected survivors.
-        """
-        # Implement the fitness function here instead
+    def survivors(self, old_generation: list, fitness_scores: np.ndarray) -> list:
+        """Select half of the gen based on fitness function."""
+        #implement the fitness function here instead
         survivors = []
-        random.shuffle(curr_generation)
-        mid = len(curr_generation) // 2
+        mid = len(old_generation) // 2
 
         for i in range(mid):
-            fit_1 = ff.fitness_function_normalized(curr_generation[i])
-            fit_2 = ff.fitness_function_normalized(curr_generation[i + mid])
-            if fit_1 > fit_2:
-                survivors.append(curr_generation[i])
-                # print(f"Choosing the better fit: {fit_1}")
+            if fitness_scores[i] > fitness_scores[i + mid]:
+                survivors.append(old_generation[i])
             else:
-                survivors.append(curr_generation[i + mid])
-                # print(f"Choosing the better fit: {fit_2}")
+                survivors.append(old_generation[i + mid])
 
         return survivors
 
-    def elitism(
-        self,
-        curr_generation: list,
-        ff: FitnessFunction,
-        survive_rate: float = 0.5
-    ) -> list:
-        """
-        Selects survivors based on elitism, i.e., the top individuals.
+    def elitism(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5) -> np.ndarray:
+        """Selects survivors based on elitism, ie the top"""
+        #sort in descending order
+        sorted_indices = np.argsort(fitness)[::-1]
+        # cap the num_survivors to min==1 and max=int(math.floor(survive_rate * len(generation)))
+        num_survivors = max(1, int(math.floor(survive_rate * len(generation))))
+        num_survivors = min(num_survivors, len(generation))
 
-        This method sorts the current generation in descending order of fitness and selects
-        the top portion as survivors based on the specified survival rate.
+        elite_indices = sorted_indices[:num_survivors]
+        elites = generation[elite_indices]
 
-        Args:
-            curr_generation (list): The current population.
-            ff (FitnessFunction): The fitness function to evaluate individuals.
-            survive_rate (float, optional): 
-            The proportion of the population to survive. Defaults to 0.5.
-
-        Returns:
-            list: The list of selected survivors.
-        """
-        # Sort in descending order
-        sorted_population = sorted(
-            curr_generation,
-            key=ff.fitness_function_normalized,
-            reverse=True
-        )
-        num_survivors = int(len(curr_generation) * survive_rate)  # Calculate number of survivors
-        survivors = sorted_population[:num_survivors]  # Select top survivors
-        return survivors
+        return elites
 
     def tournament(
         self,
         generation: np.ndarray,
         fitness: np.ndarray,
         survive_rate: float,
-        tournament_size: int
+        tournament_size: int = 2
     ) -> np.ndarray:
         """
         Selects survivors using tournament selection.
@@ -130,15 +81,82 @@ class Selection:
         return np.array(survivors)
 
     # --- Optional Selection Methods ---
-    # Currently, we compare two solutions and pick the better one to be a survivor.
-    # Implement additional selection strategies as needed:
-    # - Elitist selection: choose the top 15% best solutions in the current generation
-    # - Tournament selection: choose 25% of the remaining population through tournaments
-    # - Roulette selection: choose 10% randomly to maintain diversity
-    # For example, with a population of 100:
-    # - Elitist: 15 best solutions
-    # - Tournament: 25 selected via tournaments
-    # - Roulette: 10 chosen randomly from the remaining 60 solutions
+    #currently we compare two solutions, and pick the better one, to be a survivor
+    #   Implement something like this instead of current survivors logic method:
+    # elitist_selection, choose the 15% best solutions in the current generation,
+    # tournament_selection, choose 25% of the remaining gen through tournament
+    # choose 10% in roulette
+    # lets say we have a gen of 100
+    # elitist = 15 best solutions, tournament = 25, out of the remaining 60 solutions,
+    # choose 10 at roulette(random) for maintaining diversity
 
-    # Consider experimenting with these methods to determine which yields the best solutions.
-    # Also, decide if you want to mutate a small portion of the population to maintain diversity.
+    #we should try to look into this and see what gives us the best solution rate
+    #do we also want to mutate a small portion of the gen?
+
+    def roulette_wheel_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float) -> np.ndarray:
+        """Perform Roulette Wheel Selection"""
+
+        total_fitness = fitness.sum()
+        size_gen = len(generation)
+
+        if total_fitness == 0:
+            # If total fitness is zero, select uniformly at random
+            probabilities = np.full(size_gen, 1 / size_gen)
+        else:
+            probabilities = fitness / total_fitness
+            probabilities /= probabilities.sum()
+
+        num_selected = max(1, int(math.floor(survive_rate * size_gen)))
+        num_selected = min(num_selected, size_gen)
+
+        selected_indices = np.random.choice(size_gen, size=num_selected, replace=True, p=probabilities)
+        selected = generation[selected_indices]
+
+        return selected
+
+    def stochastic_universal_sampling(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float):
+        """Stochastic universal sampling implementation"""
+        total_fitness = fitness.sum()
+        size_gen = len(generation)
+        if total_fitness == 0:
+            probabilities = np.full(size_gen, 1 / size_gen)
+        else:
+            probabilities = fitness / total_fitness
+
+        cumulative_prob = np.cumsum(probabilities)
+        cumulative_prob[-1] = 1.0
+
+        num_selected = max(1, int(math.floor(survive_rate * size_gen)))
+        num_selected = min(num_selected, size_gen)
+
+        pointer_distance = 1.0 / num_selected
+        start_point = np.random.uniform(0, pointer_distance)
+        pointers = start_point + pointer_distance * np.arange(num_selected)
+
+        indices = np.clip(np.searchsorted(cumulative_prob, pointers), 0, size_gen - 1)
+        selected = generation[indices]
+
+        return selected
+
+    def rank_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float) -> np.ndarray:
+        """Perform Rank Selection"""
+        size_gen = len(generation)
+
+        num_selected = max(1, int(math.floor(survive_rate * size_gen)))
+        num_selected = min(num_selected, size_gen)
+
+        sorted_indices = np.argsort(-fitness)
+
+        ranks = np.empty_like(sorted_indices)
+        ranks[sorted_indices] = np.arange(1, len(fitness) + 1)
+        rank_sum = np.sum(ranks)
+
+        selection_probs = ranks / rank_sum
+        cumulative_probs = np.cumsum(selection_probs)
+
+        random_values = np.random.rand(num_selected)
+
+        selected_indices = np.searchsorted(cumulative_probs, random_values)
+        selected = generation[selected_indices]
+
+        return selected
