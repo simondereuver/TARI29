@@ -1,113 +1,104 @@
 """Module containing selection"""
 # pylint: disable=too-many-arguments,line-too-long
 import math
-import random
 import numpy as np
 
 
 class Selection:
     """A class to choose the survivors of a generation"""
 
-    def __init__(self, selection_method="elitism", survive_rate=0.5, tournament_size=2):
+    def __init__(self,
+                 selection_methods=None,
+                 survive_rate=0.5,
+                 tournament_size=2):
         """
-        Initialize Selection class with a specified selection method.
+        Initialize Selection class with a list of selection methods and their percentages.
 
         Args:
-            selection_method (str): The selection method to use.
+            selection_methods (list of tuples): (selection_method, percentage).
+            survive_rate (float): Percentage of population that survives.
+            tournament_size (int): Number of individuals in each tournament for tournament selection.
         """
+        if selection_methods is None:
+            selection_methods = [("elitism", 1.0)]  #default
+
+        self.selection_methods = selection_methods
         self.survive_rate = survive_rate
         self.tournament_size = tournament_size
-        self.selection_method = selection_method.lower()
-        self.selection_methods = {
+        self.selection_functions = {
             "elitism": self.elitism,
             "tournament": self.tournament,
             "roulette_wheel": self.roulette_wheel_selection,
-            "stochastic_universal_sampling": self.stochastic_universal_sampling,
             "rank_selection": self.rank_selection,
         }
 
-        if self.selection_method not in self.selection_methods:
-            raise ValueError(f"Invalid selection method: {self.selection_method}")
-
     def select_survivors(self,
                          generation: np.ndarray,
-                         fitness: np.ndarray) -> np.ndarray:
+                         fitness: np.ndarray
+                         ) -> np.ndarray:
         """
-        Select survivors using the specified selection method.
-        """
-        selection_function = self.selection_methods[self.selection_method]
-        return selection_function(generation, fitness)
-
-    
-    def survivors(self, old_generation: list, fitness_scores: np.ndarray) -> list:
-        """Select half of the gen based on fitness function."""
-        #implement the fitness function here instead
-        survivors = []
-        mid = len(old_generation) // 2
-
-        for i in range(mid):
-            if fitness_scores[i] > fitness_scores[i + mid]:
-                survivors.append(old_generation[i])
-            else:
-                survivors.append(old_generation[i + mid])
-
-        return survivors
-
-
-    def elitism(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5) -> np.ndarray:
-        """Selects survivors based on elitism, ie the top"""
-        #sort in descending order
-        sorted_indices = np.argsort(fitness)[::-1]
-        # cap the num_survivors to min==1 and max=int(math.floor(survive_rate * len(generation)))
-        num_survivors = max(1, int(math.floor(survive_rate * len(generation))))
-        num_survivors = min(num_survivors, len(generation))
-
-        elite_indices = sorted_indices[:num_survivors]
-        elites = generation[elite_indices]
-
-        return elites
-
-    def tournament(
-        self,
-        generation: np.ndarray,
-        fitness: np.ndarray,
-        survive_rate: float = 0.5,
-        tournament_size: int = 2
-    ) -> np.ndarray:
-        """
-        Selects survivors using tournament selection.
-
-        For each survivor to be selected, a subset of the population is chosen randomly,
-        and the individual with the best fitness in the subset is selected as a survivor.
+        Select survivors using multiple selection methods and their percentages.
 
         Args:
             generation (np.ndarray): The current population.
             fitness (np.ndarray): The fitness scores corresponding to the population.
-            survive_rate (float): The proportion of the population to survive.
-            tournament_size (int): The number of individuals competing in each tournament.
 
         Returns:
-            np.ndarray: The array of selected survivors.
+            np.ndarray: The selected survivors.
         """
+        total_population_size = len(generation)
+        total_survivors = max(1, int(total_population_size * self.survive_rate))
+        survivors = np.empty((0, generation.shape[1]), dtype=generation.dtype)
+        total_selected = 0
+
+        for method, percentage in self.selection_methods: #remember we are unpacking a tuple with (method, percentage)
+            num_to_select = int(total_survivors * percentage) #amout to select for a given method
+            #print(f"Using {method} to select {num_to_select} survivors")
+            selected = self.selection_functions[method](generation, fitness, num_to_select)
+            survivors = np.vstack((survivors, selected))
+            total_selected += num_to_select
+
+        #print(f"Survivors selected: {len(survivors)} from multiple methods")
+        return survivors
+
+    def elitism(self,
+                generation: np.ndarray,
+                fitness: np.ndarray,
+                num_to_select: int
+                ) -> np.ndarray:
+        """Selects the top individuals based on fitness (elitism)."""
+        sorted_indices = np.argsort(fitness)[::-1]
+        elites = generation[sorted_indices[:num_to_select]]
+        return elites
+
+    def tournament(self,
+                   generation: np.ndarray,
+                   fitness: np.ndarray,
+                   num_to_select: int,
+                   tournament_size: int = None
+                   ) -> np.ndarray:
+        """
+        Selects survivors using tournament selection.
+        """
+        if tournament_size is None:
+            tournament_size = self.tournament_size
+
         population_size = len(generation)
-        n_survive = max(1, int(population_size * survive_rate))
-
         survivors = []
-        for _ in range(n_survive):
+        for _ in range(num_to_select):
             # Randomly select individuals for the tournament
-            tournament_indices = random.sample(range(population_size), tournament_size)
-
-            # Retrieve their fitness scores
+            tournament_indices = np.random.choice(population_size, tournament_size, replace=False)
             tournament_fitness = fitness[tournament_indices]
 
-            # Find the index of the individual with the best fitness (lowest score)
-            winner_idx_in_tournament = np.argmin(tournament_fitness)
+            # Find the index of the individual with the best fitness (highest score)
+            winner_idx_in_tournament = np.argmax(tournament_fitness)
             winner_index = tournament_indices[winner_idx_in_tournament]
 
             # Append the winner to the survivors list
             survivors.append(generation[winner_index])
 
         return np.array(survivors)
+
 
     # --- Optional Selection Methods ---
     #currently we compare two solutions, and pick the better one, to be a survivor
@@ -122,27 +113,30 @@ class Selection:
     #we should try to look into this and see what gives us the best solution rate
     #do we also want to mutate a small portion of the gen?
 
-    def roulette_wheel_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5) -> np.ndarray:
-        """Perform Roulette Wheel Selection"""
+    def roulette_wheel_selection(self,
+                                 generation: np.ndarray,
+                                 fitness: np.ndarray,
+                                 num_to_select: int
+                                 ) -> np.ndarray:
+        """Perform Roulette Wheel Selection."""
         total_fitness = fitness.sum()
         size_gen = len(generation)
 
         if total_fitness == 0:
-            # If total fitness is zero, select uniformly at random
             probabilities = np.full(size_gen, 1 / size_gen)
         else:
             probabilities = fitness / total_fitness
-            probabilities /= probabilities.sum()
+            probabilities /= probabilities.sum()  # Normalize
 
-        num_selected = max(1, int(math.floor(survive_rate * size_gen)))
-        num_selected = min(num_selected, size_gen)
-
-        selected_indices = np.random.choice(size_gen, size=num_selected, replace=True, p=probabilities)
+        selected_indices = np.random.choice(size_gen, size=num_to_select, replace=True, p=probabilities)
         selected = generation[selected_indices]
-
         return selected
 
-    def stochastic_universal_sampling(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5):
+
+    def stochastic_universal_sampling(self,
+                                      generation: np.ndarray,
+                                      fitness: np.ndarray,
+                                      survive_rate: float = 0.5):
         """Stochastic universal sampling implementation"""
         total_fitness = fitness.sum()
         size_gen = len(generation)
@@ -165,9 +159,9 @@ class Selection:
         selected = generation[indices]
 
         return selected
-
+    """
     def rank_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5) -> np.ndarray:
-        """Perform Rank Selection"""
+        #Perform Rank Selection
         size_gen = len(generation)
 
         num_selected = max(1, int(math.floor(survive_rate * size_gen)))
@@ -187,4 +181,20 @@ class Selection:
         selected_indices = np.searchsorted(cumulative_probs, random_values)
         selected = generation[selected_indices]
 
+        return selected
+    """
+    def rank_selection(self, generation: np.ndarray, fitness: np.ndarray, num_to_select: int) -> np.ndarray:
+        """Perform Rank Selection."""
+        size_gen = len(generation)
+        sorted_indices = np.argsort(fitness)
+
+        # Assign ranks
+        ranks = np.arange(1, size_gen + 1)
+        probabilities = ranks / ranks.sum()
+
+        # Since ranks are sorted in ascending fitness, reverse the indices
+        selection_probs = probabilities[::-1]
+
+        selected_indices = np.random.choice(size_gen, size=num_to_select, replace=True, p=selection_probs)
+        selected = generation[selected_indices]
         return selected

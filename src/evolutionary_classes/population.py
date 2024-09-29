@@ -25,7 +25,6 @@ class Population:
             crossover_method (str): Method to use for crossover.
             graph (optional): Graph data required for SCX method.
         """
-        # Maybe should use the mutation range based on the size of population
         if not 0 <= mutation_rate <= 1:
             raise ValueError("mutation_rate must be between 0 and 1")
 
@@ -49,26 +48,27 @@ class Population:
 
         return random_paths
 
-    def crossovers(self, survivors: np.ndarray) -> np.ndarray:
-        """Creates crossovers using NumPy arrays."""
+    def crossovers(self, survivors: np.ndarray, num_children_needed: int) -> np.ndarray:
+        """Creates the required number of children from the survivors."""
         crossover = Crossover(self.crossover_method, self.graph)
 
-        mid = survivors.shape[0] // 2
-        parents_a = survivors[:mid]
-        parents_b = survivors[mid:]
-
-        num_children = 2 * mid
+        num_survivors = len(survivors)
         num_genes = survivors.shape[1]
 
-        children = np.empty((num_children, num_genes), dtype=survivors.dtype)
+        children = np.empty((num_children_needed, num_genes), dtype=survivors.dtype)
 
-        for idx, (parent_a, parent_b) in enumerate(zip(parents_a, parents_b)):
-            child1 = crossover.create_children(parent_a, parent_b)
-            child2 = crossover.create_children(parent_b, parent_a)
-            children[2 * idx] = child1
-            children[2 * idx + 1] = child2
+        for idx in range(num_children_needed):
+            #randomly select two parents from the survivors
+            parent_indices = np.random.choice(num_survivors, 2, replace=False)
+            parent_a = survivors[parent_indices[0]]
+            parent_b = survivors[parent_indices[1]]
+
+            #create a child from the parents
+            child = crossover.create_children(parent_a, parent_b)
+            children[idx] = child
 
         return children
+
 
     def mutate_population(self, generation: np.ndarray) -> np.ndarray:
         """Mutates a small percentage of the population using numpy arrays."""
@@ -77,36 +77,26 @@ class Population:
 
         for i in range(population_size):
             if random.random() < self.mutation_rate:
-
                 path = generation[i]
                 index1, index2 = random.sample(range(1, path_length), 2)
                 path[index1], path[index2] = path[index2], path[index1]
-
                 generation[i] = path
 
         return generation
 
     def gen_new_population(self, curr_gen: np.ndarray, selection: Selection, fitness_scores: np.ndarray) -> np.ndarray:
-        """Generate a new population using selection, crossover, and mutation."""
-        #elites = selection.elitism(curr_gen, fitness_scores, 0.1)
-        #selection_methods = [
-        #                        (selection.roulette_wheel_selection, 0.8),
-                                #(selection.tournament, 0.4),
-                                #(selection.rank_selection, 0.05),
-                                #(selection.stochastic_universal_sampling, 0.8)
-        #                    ]
-        survivors = np.empty((0, len(curr_gen[0])), dtype=int)
+        """
+        Generate a new population using selection, crossover, and mutation.
+        """
+        population_size = len(curr_gen) 
+
         survivors = selection.select_survivors(curr_gen, fitness_scores)
+        num_survivors = len(survivors)
+        num_children_needed = population_size - num_survivors
+        #print(f"num children needed{num_children_needed}")
 
-
-        #for method, survive_rate in selection_methods:
-        #    selected = method(curr_gen, fitness_scores, survive_rate)
-        #    survivors = np.concatenate((survivors, selected))
-
-        #children = self.crossovers(np.concatenate((survivors, elites)))
-        children = self.crossovers(survivors)
-        #combined_population = np.concatenate((children, elites))
-        #new_population = self.mutate_population(combined_population)
+        children = self.crossovers(survivors, num_children_needed)
         new_population = np.concatenate((survivors, children))
         new_population = self.mutate_population(new_population)
+
         return new_population

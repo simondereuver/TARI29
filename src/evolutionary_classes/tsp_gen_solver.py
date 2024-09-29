@@ -16,7 +16,7 @@ class TSPGeneticSolver:
                  mutation_rate=0.01,
                  bounds=None,
                  crossover_method: str = "Simple",
-                 selection_method: str = "elitism",
+                 selection_methods = None,
                  survive_rate: float = 0.5,
                  tournament_size: int = None):
         """
@@ -29,17 +29,17 @@ class TSPGeneticSolver:
         else:
             self.population_manager = Population(mutation_rate, crossover_method)
 
-        self.selection_manager = Selection(selection_method=selection_method,
+        self.selection_manager = Selection(selection_methods=selection_methods,
                                            survive_rate=survive_rate,
                                            tournament_size=tournament_size)
         self.bounds = bounds
         self.ff = FitnessFunction(graph, bounds)
 
-    def run(self, generations=100, population_size=100):
+    def run(self, generations: int =100, population_size: int =100):
         """
         Run the genetic algorithm for a specified number of generations.
         """
-        progress_bar = tqdm(total=generations, disable=True)
+        progress_bar = tqdm(total=generations, disable=False)
 
         current_generation = self.population_manager.initial_population(self.graph, population_size)
 
@@ -75,7 +75,7 @@ class TSPGeneticSolver:
                 best_path = current_generation[index]
                 no_improvement_count = 0
                 convergence_generation_start = None
-                improved_at_least_once = True  # Mark that an improvement has occurred
+                improved_at_least_once = True  # mark that an improvement has occurred
             else:
                 no_improvement_count += 1
 
