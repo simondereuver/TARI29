@@ -8,9 +8,37 @@ import numpy as np
 class Selection:
     """A class to choose the survivors of a generation"""
 
-    def __init__(self):
-        """Initialize Selection class"""
+    def __init__(self, selection_method="elitism", survive_rate=0.5, tournament_size=2):
+        """
+        Initialize Selection class with a specified selection method.
 
+        Args:
+            selection_method (str): The selection method to use.
+        """
+        self.survive_rate = survive_rate
+        self.tournament_size = tournament_size
+        self.selection_method = selection_method.lower()
+        self.selection_methods = {
+            "elitism": self.elitism,
+            "tournament": self.tournament,
+            "roulette_wheel": self.roulette_wheel_selection,
+            "stochastic_universal_sampling": self.stochastic_universal_sampling,
+            "rank_selection": self.rank_selection,
+        }
+
+        if self.selection_method not in self.selection_methods:
+            raise ValueError(f"Invalid selection method: {self.selection_method}")
+
+    def select_survivors(self,
+                         generation: np.ndarray,
+                         fitness: np.ndarray) -> np.ndarray:
+        """
+        Select survivors using the specified selection method.
+        """
+        selection_function = self.selection_methods[self.selection_method]
+        return selection_function(generation, fitness)
+
+    
     def survivors(self, old_generation: list, fitness_scores: np.ndarray) -> list:
         """Select half of the gen based on fitness function."""
         #implement the fitness function here instead
@@ -24,6 +52,7 @@ class Selection:
                 survivors.append(old_generation[i + mid])
 
         return survivors
+
 
     def elitism(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5) -> np.ndarray:
         """Selects survivors based on elitism, ie the top"""
@@ -42,7 +71,7 @@ class Selection:
         self,
         generation: np.ndarray,
         fitness: np.ndarray,
-        survive_rate: float,
+        survive_rate: float = 0.5,
         tournament_size: int = 2
     ) -> np.ndarray:
         """
@@ -93,9 +122,8 @@ class Selection:
     #we should try to look into this and see what gives us the best solution rate
     #do we also want to mutate a small portion of the gen?
 
-    def roulette_wheel_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float) -> np.ndarray:
+    def roulette_wheel_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5) -> np.ndarray:
         """Perform Roulette Wheel Selection"""
-
         total_fitness = fitness.sum()
         size_gen = len(generation)
 
@@ -114,7 +142,7 @@ class Selection:
 
         return selected
 
-    def stochastic_universal_sampling(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float):
+    def stochastic_universal_sampling(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5):
         """Stochastic universal sampling implementation"""
         total_fitness = fitness.sum()
         size_gen = len(generation)
@@ -138,7 +166,7 @@ class Selection:
 
         return selected
 
-    def rank_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float) -> np.ndarray:
+    def rank_selection(self, generation: np.ndarray, fitness: np.ndarray, survive_rate: float = 0.5) -> np.ndarray:
         """Perform Rank Selection"""
         size_gen = len(generation)
 

@@ -13,7 +13,6 @@ class Population:
     def __init__(
         self,
         mutation_rate=0.01,
-        population_size_range=(10, 50),
         crossover_method="OX",
         graph=None
     ):
@@ -29,16 +28,9 @@ class Population:
         # Maybe should use the mutation range based on the size of population
         if not 0 <= mutation_rate <= 1:
             raise ValueError("mutation_rate must be between 0 and 1")
-        if not (isinstance(population_size_range, tuple) and len(population_size_range) == 2):
-            raise ValueError("population_size_range must be a tuple with two values")
-        if population_size_range[0] >= population_size_range[1]:
-            raise ValueError(
-                "population_size_range must be a tuple (min, max) where min < max"
-            )
 
         self.graph = graph
         self.mutation_rate = mutation_rate
-        self.population_size_range = population_size_range
         self.crossover_method = crossover_method
 
     def initial_population(self, graph: np.ndarray, population_size: int) -> np.ndarray:
@@ -96,20 +88,25 @@ class Population:
 
     def gen_new_population(self, curr_gen: np.ndarray, selection: Selection, fitness_scores: np.ndarray) -> np.ndarray:
         """Generate a new population using selection, crossover, and mutation."""
-        elites = selection.elitism(curr_gen, fitness_scores, 0.1)
-        selection_methods = [
-                                (selection.roulette_wheel_selection, 0.8),
+        #elites = selection.elitism(curr_gen, fitness_scores, 0.1)
+        #selection_methods = [
+        #                        (selection.roulette_wheel_selection, 0.8),
                                 #(selection.tournament, 0.4),
                                 #(selection.rank_selection, 0.05),
                                 #(selection.stochastic_universal_sampling, 0.8)
-                            ]
+        #                    ]
         survivors = np.empty((0, len(curr_gen[0])), dtype=int)
-        for method, survive_rate in selection_methods:
-            selected = method(curr_gen, fitness_scores, survive_rate)
-            survivors = np.concatenate((survivors, selected))
+        survivors = selection.select_survivors(curr_gen, fitness_scores)
 
-        children = self.crossovers(np.concatenate((survivors, elites)))
-        combined_population = np.concatenate((children, elites))
-        new_population = self.mutate_population(combined_population)
 
+        #for method, survive_rate in selection_methods:
+        #    selected = method(curr_gen, fitness_scores, survive_rate)
+        #    survivors = np.concatenate((survivors, selected))
+
+        #children = self.crossovers(np.concatenate((survivors, elites)))
+        children = self.crossovers(survivors)
+        #combined_population = np.concatenate((children, elites))
+        #new_population = self.mutate_population(combined_population)
+        new_population = np.concatenate((survivors, children))
+        new_population = self.mutate_population(new_population)
         return new_population
