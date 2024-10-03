@@ -14,8 +14,8 @@ class TSPGeneticSolver:
                  graph: np.ndarray,
                  mutation_rate=0.01,
                  bounds=None,
-                 crossover_method: str = "Simple",
-                 selection_methods = None,
+                 crossover_method: str = "SCX",
+                 selection_methods: list[tuple[str, float]] = None,
                  survive_rate: float = 0.5,
                  tournament_size: int = None):
         """
@@ -33,7 +33,7 @@ class TSPGeneticSolver:
                                            tournament_size=tournament_size)
         self.bounds = bounds
 
-    def run(self, generations: int =100, population_size: int =100):
+    def run(self, generations: int = 100, population_size: int = 100):
         """
         Run the genetic algorithm for a specified number of generations.
         """
@@ -43,9 +43,9 @@ class TSPGeneticSolver:
 
         fitness_scores = compute_fitness_scores(self.graph, current_generation, self.bounds)
         index = np.argmax(fitness_scores)
-        best_path = current_generation[index]
+        best_tour = current_generation[index]
 
-        best_distance = calculate_distance(self.graph, best_path)
+        best_distance = calculate_distance(self.graph, best_tour)
 
         #track convergence
         no_improvement_count = 0
@@ -62,15 +62,15 @@ class TSPGeneticSolver:
             fitness_scores = compute_fitness_scores(self.graph, current_generation, self.bounds)
 
             index = np.argmax(fitness_scores)
-            if calculate_distance(self.graph, best_path) > calculate_distance(self.graph, current_generation[index]):
-                best_path = current_generation[index]
+            if calculate_distance(self.graph, best_tour) > calculate_distance(self.graph, current_generation[index]):
+                best_tour = current_generation[index]
 
             current_best_distance = calculate_distance(self.graph, current_generation[index])
 
             #look for improvements
             if current_best_distance < best_distance:
                 best_distance = current_best_distance
-                best_path = current_generation[index]
+                best_tour = current_generation[index]
                 no_improvement_count = 0
                 convergence_generation_start = None
                 improved_at_least_once = True  #mark that an improvement has occurred
@@ -82,17 +82,17 @@ class TSPGeneticSolver:
                 max_no_improvement_count = no_improvement_count
                 convergence_generation_start = generation - no_improvement_count + 1
 
-            progress_bar.set_postfix_str(f'fitness={np.max(fitness_scores):.3f}, Best={calculate_distance(self.graph, best_path)}')
+            progress_bar.set_postfix_str(f'fitness={np.max(fitness_scores):.3f}, Best={calculate_distance(self.graph, best_tour)}')
             progress_bar.update(1)
 
         if not np.any(current_generation):
-            print("\nNo valid paths found in the final generation.")
+            print("\nNo valid tours found in the final generation.")
             return None, None
 
         if not improved_at_least_once:
             convergence_generation_start = 0
             max_no_improvement_count = generations
 
-        best_path = np.append(best_path, best_path[0])
+        best_tour = np.append(best_tour, best_tour[0])
 
-        return best_path, best_distance, convergence_generation_start, max_no_improvement_count
+        return best_tour, best_distance, convergence_generation_start, max_no_improvement_count

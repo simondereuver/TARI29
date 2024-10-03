@@ -1,5 +1,5 @@
 """main program code here"""
-
+# pylint: disable=too-many-arguments,line-too-long
 import time
 import os
 import pandas as pd

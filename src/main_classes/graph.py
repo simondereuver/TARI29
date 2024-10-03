@@ -150,7 +150,7 @@ class Graph:
 
             mst_weight = 0
 
-            while priority_queue and len(mst_edges) < len(graph) - 2:  # n-2 edges in MST
+            while priority_queue and len(mst_edges) < len(graph) - 2:  #n-2 edges in MST
                 weight, u, v = heapq.heappop(priority_queue)
                 if v not in visited:
                     visited.add(v)
@@ -217,12 +217,12 @@ class Graph:
         """
         Analyzes the graph and returns statistics and recommended choices.
 
-        Parameters:
-        - graph (np.ndarray): The graph to analyze.
+        Args:
+            graph (np.ndarray): The graph to analyze.
 
         Returns:
-        - statistics (dict): Statistics about the graph.
-        - recommendations (dict): Recommended parameters for the genetic algorithm.
+            statistics (dict): Statistics about the graph.
+            parameters (dict): Recommended parameters for the genetic algorithm.
         """
 
         #extract the upper triangle of the adjacency matrix (since the graph is undirected)
@@ -244,7 +244,7 @@ class Graph:
 
         range_ratio = ((max_val - min_val) / mean) * 100 if mean != 0 else 0
 
-        recommendations = {
+        parameters = {
             "selection_methods": [],
             "crossover_method": "",
             "mutation_rate": 0,
@@ -278,28 +278,28 @@ class Graph:
 
         selection_methods = [("elitism", elitism_rate), (selection_method_name, 1 - elitism_rate)]
 
-        recommendations["selection_methods"] = selection_methods
+        parameters["selection_methods"] = selection_methods
         if selection_method_name == "tournament":
-            recommendations["tournament_size"] = selection_parameters.get("tournament_size", 2)
+            parameters["tournament_size"] = selection_parameters.get("tournament_size", 2)
 
         #adjust crossover method based on CV and skewness
         if cv > cv_threshold:
             if skewness_percentage > skewness_threshold:
-                recommendations["crossover_method"] = "SCX"
+                parameters["crossover_method"] = "SCX"
             else:
-                recommendations["crossover_method"] = "CX"
+                parameters["crossover_method"] = "CX"
         else:
             if skewness_percentage < -skewness_threshold:
-                recommendations["crossover_method"] = "CX"
+                parameters["crossover_method"] = "CX"
             else:
-                recommendations["crossover_method"] = "OX"
+                parameters["crossover_method"] = "OX"
 
         if range_ratio > high_range_threshold:
-            recommendations["mutation_rate"] = 0.05  
+            parameters["mutation_rate"] = 0.05
         elif range_ratio < low_range_threshold:
-            recommendations["mutation_rate"] = 0.01
+            parameters["mutation_rate"] = 0.01
         else:
-            recommendations["mutation_rate"] = 0.02
+            parameters["mutation_rate"] = 0.02
 
         statistics = {
             "min": min_val,
@@ -317,4 +317,4 @@ class Graph:
             "relative_IQR": relative_iqr,
         }
 
-        return statistics, recommendations
+        return statistics, parameters
