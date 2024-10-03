@@ -212,3 +212,109 @@ class Graph:
         x += graph[tour[-1], tour[0]]
 
         return x
+
+    def preprocess_graph(self, graph: np.ndarray) -> tuple:
+        """
+        Analyzes the graph and returns statistics and recommended choices.
+
+        Parameters:
+        - graph (np.ndarray): The graph to analyze.
+
+        Returns:
+        - statistics (dict): Statistics about the graph.
+        - recommendations (dict): Recommended parameters for the genetic algorithm.
+        """
+
+        #extract the upper triangle of the adjacency matrix (since the graph is undirected)
+        upper_triangle = graph[np.triu_indices_from(graph, k=1)]
+
+        min_val = np.min(upper_triangle)
+        max_val = np.max(upper_triangle)
+        mean = np.mean(upper_triangle)
+        median = np.median(upper_triangle)
+        std_dev = np.std(upper_triangle)
+        num_edges = np.size(upper_triangle)
+
+        #calculate skewness using pearsons second skewness coefficient
+        skewness = (3 * (mean - median)) / std_dev if std_dev != 0 else 0
+        skewness_percentage = skewness * 100
+
+        #coefficient of bariation
+        cv = (std_dev / mean) * 100 if mean != 0 else 0
+
+        range_ratio = ((max_val - min_val) / mean) * 100 if mean != 0 else 0
+
+        recommendations = {
+            "selection_methods": [],
+            "crossover_method": "",
+            "mutation_rate": 0,
+            "tournament_size": None
+        }
+
+        #calc quartiles and iqr
+        q1 = np.percentile(upper_triangle, 25)
+        q3 = np.percentile(upper_triangle, 75)
+        iqr = q3 - q1
+
+        relative_iqr = (iqr / mean) * 100 if mean != 0 else 0
+
+        skewness_threshold = 1
+        cv_threshold = relative_iqr
+        low_range_threshold = ((q1 - min_val) / mean) * 100 if mean != 0 else 0
+        high_range_threshold = ((max_val - q3) / mean) * 100 if mean != 0 else 0
+
+        if skewness_percentage > skewness_threshold:
+            selection_method_name = "tournament"
+            selection_parameters = {"tournament_size": 5}
+            elitism_rate = 0.1
+        elif skewness_percentage < -skewness_threshold:
+            selection_method_name = "rank_selection"
+            selection_parameters = {}
+            elitism_rate = 0.2
+        else:
+            selection_method_name = "roulette_wheel"
+            selection_parameters = {}
+            elitism_rate = 0.15
+
+        selection_methods = [("elitism", elitism_rate), (selection_method_name, 1 - elitism_rate)]
+
+        recommendations["selection_methods"] = selection_methods
+        if selection_method_name == "tournament":
+            recommendations["tournament_size"] = selection_parameters.get("tournament_size", 2)
+
+        #adjust crossover method based on CV and skewness
+        if cv > cv_threshold:
+            if skewness_percentage > skewness_threshold:
+                recommendations["crossover_method"] = "SCX"
+            else:
+                recommendations["crossover_method"] = "CX"
+        else:
+            if skewness_percentage < -skewness_threshold:
+                recommendations["crossover_method"] = "CX"
+            else:
+                recommendations["crossover_method"] = "OX"
+
+        if range_ratio > high_range_threshold:
+            recommendations["mutation_rate"] = 0.05  
+        elif range_ratio < low_range_threshold:
+            recommendations["mutation_rate"] = 0.01
+        else:
+            recommendations["mutation_rate"] = 0.02
+
+        statistics = {
+            "min": min_val,
+            "max": max_val,
+            "mean": mean,
+            "median": median,
+            "std_dev": std_dev,
+            "num_edges": num_edges,
+            "skewness": skewness,
+            "cv": cv,
+            "range_ratio": range_ratio,
+            "Q1": q1,
+            "Q3": q3,
+            "IQR": iqr,
+            "relative_IQR": relative_iqr,
+        }
+
+        return statistics, recommendations

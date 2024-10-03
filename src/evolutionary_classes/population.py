@@ -31,9 +31,9 @@ class Population:
         self.graph = graph
         self.mutation_rate = mutation_rate
         self.crossover_method = crossover_method
-
+    """
     def initial_population(self, graph: np.ndarray, population_size: int) -> np.ndarray:
-        """Generate the initial population."""
+        #Generate the initial population.
         total_destinations = graph.shape[0]
 
         random_paths = np.empty((population_size, total_destinations), dtype=int)
@@ -47,6 +47,43 @@ class Population:
             random_paths[i] = path
 
         return random_paths
+    """
+    def initial_population(self, graph: np.ndarray, population_size: int) -> np.ndarray:
+        #Generate the initial population.
+        total_destinations = graph.shape[0]
+
+        random_paths = np.empty((population_size, total_destinations), dtype=int)
+
+        for i in range(population_size):
+            if i >= population_size // 2:
+                random_paths[i] = self.nearest_neighbor(graph)
+            else:
+                path = list(range(1, total_destinations))
+                random.shuffle(path)
+
+                path = [0] + path
+
+                random_paths[i] = path
+
+        return random_paths
+
+    def nearest_neighbor(self, graph: np.ndarray):
+        #Nearest neighbour for initial pop
+        nodes = len(graph)
+        start = random.randint(0, nodes - 1)
+
+        unvisited = set(range(nodes))
+        unvisited.remove(start)
+        tour = [start]
+        current_node = start
+
+        while unvisited:
+            next_node = min(unvisited, key=lambda node: graph[current_node][node])
+            tour.append(next_node)
+            unvisited.remove(next_node)
+            current_node = next_node
+
+        return tour
 
     def crossovers(self, survivors: np.ndarray, num_children_needed: int) -> np.ndarray:
         """Creates the required number of children from the survivors."""
@@ -88,7 +125,7 @@ class Population:
         """
         Generate a new population using selection, crossover, and mutation.
         """
-        population_size = len(curr_gen) 
+        population_size = len(curr_gen)
 
         survivors = selection.select_survivors(curr_gen, fitness_scores)
         num_survivors = len(survivors)

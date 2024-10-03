@@ -4,7 +4,6 @@ import numpy as np
 from tqdm import tqdm
 from evolutionary_classes.fitness import compute_fitness_scores, calculate_distance
 from evolutionary_classes.selection import Selection
-from evolutionary_classes.fitness_function import FitnessFunction
 from evolutionary_classes.population import Population
 
 
@@ -33,7 +32,6 @@ class TSPGeneticSolver:
                                            survive_rate=survive_rate,
                                            tournament_size=tournament_size)
         self.bounds = bounds
-        self.ff = FitnessFunction(graph, bounds)
 
     def run(self, generations: int =100, population_size: int =100):
         """
@@ -75,7 +73,7 @@ class TSPGeneticSolver:
                 best_path = current_generation[index]
                 no_improvement_count = 0
                 convergence_generation_start = None
-                improved_at_least_once = True  # mark that an improvement has occurred
+                improved_at_least_once = True  #mark that an improvement has occurred
             else:
                 no_improvement_count += 1
 

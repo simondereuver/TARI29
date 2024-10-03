@@ -25,11 +25,4 @@ def compute_fitness_scores(graph: np.ndarray, generation: np.ndarray, bounds: tu
 
     fitness_scores = np.array([eval_fitness(graph, p, bounds) for p in generation])
 
-    #with Pool() as pool:
-    #    fitness_scores = np.array(pool.starmap(eval_fitness, [(graph, p, bounds) for p in generation]))
-
-    #with ProcessPoolExecutor(max_workers=8) as executor:
-    #    futures = [executor.submit(eval_fitness, graph, p, bounds) for p in generation]
-    #    fitness_scores = np.array([f.result() for f in futures])
-
     return fitness_scores
